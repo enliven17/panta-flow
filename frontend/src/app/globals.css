@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+:root {
+  /* ============================================
+     PANTA DESIGN SYSTEM
+     "Panta Rhei" — Everything Flows
+     Deep ocean / midnight sky metaphor
+     ============================================ */
+
+  /* Surfaces — 5-tier depth system */
+  --bg-deep:      #06080F;
+  --bg:           #0A0E1A;
+  --surface-1:    #0F1424;
+  --surface-2:    #151B2E;
+  --surface-3:    #1C2340;
+
+  /* Accent — Electric Cyan (PANTA signature) */
+  --accent:       #00E5FF;
+  --accent-hover: #33EBFF;
+  --accent-dim:   rgba(0, 229, 255, 0.10);
+  --accent-glow:  rgba(0, 229, 255, 0.25);
+  --accent-muted: rgba(0, 229, 255, 0.50);
+
+  /* Secondary accent — Violet */
+  --violet:       #8B5CF6;
+  --violet-dim:   rgba(139, 92, 246, 0.10);
+  --violet-glow:  rgba(139, 92, 246, 0.20);
+
+  /* Borders */
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.18);
+  --border-accent:  rgba(0, 229, 255, 0.30);
+
+  /* Text — 4 levels */
+  --text-primary:   #E8ECF4;
+  --text-secondary: #8892A8;
+  --text-muted:     #4A5568;
+  --text-ghost:     #2D3748;
+
+  /* Semantic */
+  --green:      #34D399;
+  --green-dim:  rgba(52, 211, 153, 0.12);
+  --green-glow: rgba(52, 211, 153, 0.20);
+  --red:        #F87171;
+  --red-dim:    rgba(248, 113, 113, 0.12);
+  --red-glow:   rgba(248, 113, 113, 0.20);
+
+  /* Chart Candle Colors — monochromatic blue tonal */
+  --candle-up:        #5AABCF;
+  --candle-up-wick:   #4A9BBF;
+  --candle-down:      #2D5A73;
+  --candle-down-wick: #1E4A63;
+  --candle-up-dim:    rgba(90, 171, 207, 0.15);
+  --candle-down-dim:  rgba(45, 90, 115, 0.15);
+
+  /* Sidebar */
+  --sidebar-width: 64px;
+
+  /* Drawer / Overlay */
+  --overlay-bg:   rgba(6, 8, 15, 0.70);
+  --drawer-bg:    #0C1019;
+
+  /* Secondary button */
+  --btn-secondary-bg:    #151B2E;
+  --btn-secondary-hover: #1C2340;
+  --btn-ghost-hover:     rgba(255, 255, 255, 0.04);
+
+  /* Gradients */
+  --gradient-accent: linear-gradient(135deg, #00E5FF 0%, #8B5CF6 100%);
+  --gradient-surface: linear-gradient(180deg, var(--surface-1) 0%, var(--bg) 100%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glass panel effect */
+.glass {
+  background: rgba(15, 20, 36, 0.70);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-strong {
+  background: rgba(15, 20, 36, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-default);
+}
+
+/* Glow effects */
+.glow-accent {
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 229, 255, 0.08);
+}
+
+.glow-green {
+  box-shadow: 0 0 15px var(--green-glow);
+}
+
+.glow-red {
+  box-shadow: 0 0 15px var(--red-glow);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Ambient glow on page background */
+.ambient-glow {
+  position: relative;
+}
+.ambient-glow::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(0, 229, 255, 0.06) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 24px;
+}
+input[type="range"]::-webkit-slider-track {
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  margin-top: -7px;
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+/* Focus ring */
+.focus-ring:focus-visible {
+  outline: 1px solid var(--accent-muted);
+  outline-offset: 2px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Animated gradient border */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.border-gradient {
+  position: relative;
+  border: none;
+}
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(139, 92, 246, 0.3), rgba(0, 229, 255, 0.3));
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+/* Floating particles keyframes */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.6; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
