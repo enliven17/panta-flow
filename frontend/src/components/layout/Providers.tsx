@@ -1,15 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { WagmiProvider } from 'wagmi'
+import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  InterwovenKitProvider,
-  injectStyles,
-  TESTNET,
-} from '@initia/interwovenkit-react'
-import interwovenKitStyles from '@initia/interwovenkit-react/styles.js'
-import { wagmiConfig } from '@/lib/config/wagmi'
+import '@/lib/config/flow'
 import { WalletDrawerProvider } from './WalletDrawerContext'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -22,22 +15,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     },
   }))
 
-  useEffect(() => {
-    injectStyles(interwovenKitStyles)
-  }, [])
-
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <InterwovenKitProvider
-          {...TESTNET}
-          defaultChainId="initiation-2"
-        >
-          <WalletDrawerProvider>
-            {children}
-          </WalletDrawerProvider>
-        </InterwovenKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <QueryClientProvider client={queryClient}>
+      <WalletDrawerProvider>
+        {children}
+      </WalletDrawerProvider>
+    </QueryClientProvider>
   )
 }

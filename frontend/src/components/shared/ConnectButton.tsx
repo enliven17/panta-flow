@@ -1,7 +1,6 @@
 'use client'
 
-import { useInterwovenKit } from '@initia/interwovenkit-react'
-import { useAccount } from 'wagmi'
+import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { shortenAddress } from '@/lib/utils/format'
 
 interface ConnectButtonProps {
@@ -11,15 +10,14 @@ interface ConnectButtonProps {
 }
 
 export function ConnectButton({ onConnectedClick, mode = 'default', className = '' }: ConnectButtonProps) {
-  const { openConnect, openWallet, username } = useInterwovenKit()
-  const { address, isConnected } = useAccount()
+  const { user, isConnected, connect } = useFlowNetwork()
 
-  if (isConnected && address) {
-    const label = username ?? shortenAddress(address)
+  if (isConnected && user.addr) {
+    const label = shortenAddress(user.addr)
 
     return (
       <button
-        onClick={onConnectedClick ?? openWallet}
+        onClick={onConnectedClick}
         className={`${className} flex items-center justify-center transition-all duration-200 active:scale-[0.98] ${
           mode === 'compact'
             ? 'w-11 h-11 rounded-xl bg-[#111] border border-[#222] text-[var(--accent)] hover:border-[var(--accent-muted)]'
@@ -37,7 +35,7 @@ export function ConnectButton({ onConnectedClick, mode = 'default', className = 
 
   return (
     <button
-      onClick={openConnect}
+      onClick={connect}
       className={`${className} flex items-center justify-center transition-all duration-200 active:scale-[0.98] ${
         mode === 'compact'
           ? 'w-11 h-11 rounded-xl bg-gradient-to-tr from-[var(--accent)] to-[var(--violet)] text-[var(--bg-deep)] shadow-lg'
@@ -48,7 +46,7 @@ export function ConnectButton({ onConnectedClick, mode = 'default', className = 
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
         </svg>
-      ) : 'Connect'}
+      ) : 'Connect Wallet'}
     </button>
   )
 }

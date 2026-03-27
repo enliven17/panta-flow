@@ -14,23 +14,24 @@
   --surface-2:    #151B2E;
   --surface-3:    #1C2340;
 
-  /* Accent — Electric Cyan (PANTA signature) */
-  --accent:       #00E5FF;
-  --accent-hover: #33EBFF;
-  --accent-dim:   rgba(0, 229, 255, 0.10);
-  --accent-glow:  rgba(0, 229, 255, 0.25);
-  --accent-muted: rgba(0, 229, 255, 0.50);
+  /* Accent — Primary Green (PANTA signature) */
+  --accent:       #00C853;
+  --accent-hover: #33D068;
+  --accent-dim:   rgba(0, 200, 83, 0.10);
+  --accent-glow:  rgba(0, 200, 83, 0.25);
+  --accent-muted: rgba(0, 200, 83, 0.50);
 
-  /* Secondary accent — Violet */
-  --violet:       #8B5CF6;
-  --violet-dim:   rgba(139, 92, 246, 0.10);
-  --violet-glow:  rgba(139, 92, 246, 0.20);
+  /* Secondary accent — Dark Green */
+  --color-dark:      #1B5E20;
+  --color-dark-dim:  rgba(27, 94, 32, 0.10);
+  --color-dark-glow: rgba(27, 94, 32, 0.20);
+  --color-accent-light: #69F0AE;
 
   /* Borders */
   --border-subtle:  rgba(255, 255, 255, 0.06);
   --border-default: rgba(255, 255, 255, 0.10);
   --border-strong:  rgba(255, 255, 255, 0.18);
-  --border-accent:  rgba(0, 229, 255, 0.30);
+  --border-accent:  rgba(0, 200, 83, 0.30);
 
   /* Text — 4 levels */
   --text-primary:   #E8ECF4;
@@ -39,19 +40,19 @@
   --text-ghost:     #2D3748;
 
   /* Semantic */
-  --green:      #34D399;
-  --green-dim:  rgba(52, 211, 153, 0.12);
-  --green-glow: rgba(52, 211, 153, 0.20);
+  --green:      #00C853;
+  --green-dim:  rgba(0, 200, 83, 0.12);
+  --green-glow: rgba(0, 200, 83, 0.20);
   --red:        #F87171;
   --red-dim:    rgba(248, 113, 113, 0.12);
   --red-glow:   rgba(248, 113, 113, 0.20);
 
   /* Chart Candle Colors — monochromatic blue tonal */
-  --candle-up:        #5AABCF;
-  --candle-up-wick:   #4A9BBF;
+  --candle-up:        #00C853;
+  --candle-up-wick:   #00A843;
   --candle-down:      #2D5A73;
   --candle-down-wick: #1E4A63;
-  --candle-up-dim:    rgba(90, 171, 207, 0.15);
+  --candle-up-dim:    rgba(0, 200, 83, 0.15);
   --candle-down-dim:  rgba(45, 90, 115, 0.15);
 
   /* Sidebar */
@@ -67,9 +68,9 @@
   --btn-ghost-hover:     rgba(255, 255, 255, 0.04);
 
   /* Gradients */
-  --gradient-accent: linear-gradient(135deg, #00E5FF 0%, #8B5CF6 100%);
+  --gradient-accent: linear-gradient(135deg, #00C853 0%, #1B5E20 100%);
   --gradient-surface: linear-gradient(180deg, var(--surface-1) 0%, var(--bg) 100%);
-  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 200, 83, 0.08) 0%, rgba(27, 94, 32, 0.03) 40%, transparent 70%);
 
   /* Transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -115,7 +116,7 @@ body {
 
 /* Glow effects */
 .glow-accent {
-  box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 200, 83, 0.08);
 }
 
 .glow-green {
@@ -146,7 +147,7 @@ body {
   transform: translateX(-50%);
   width: 800px;
   height: 600px;
-  background: radial-gradient(ellipse, rgba(0, 229, 255, 0.06) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(0, 200, 83, 0.06) 0%, rgba(27, 94, 32, 0.03) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -222,7 +223,7 @@ input[type="range"]::-webkit-slider-thumb:active {
   inset: 0;
   padding: 1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(139, 92, 246, 0.3), rgba(0, 229, 255, 0.3));
+  background: linear-gradient(135deg, rgba(0, 200, 83, 0.3), rgba(27, 94, 32, 0.3), rgba(0, 200, 83, 0.3));
   background-size: 200% 200%;
   animation: gradient-shift 4s ease infinite;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);

@@ -1,0 +1,47 @@
+{
+  "contracts": {
+    "MockUSDC": { "source": "./cadence/contracts/MockUSDC.cdc" },
+    "PANTAToken": { "source": "./cadence/contracts/PANTAToken.cdc" },
+    "PLPToken": { "source": "./cadence/contracts/PLPToken.cdc" },
+    "EsPANTAToken": { "source": "./cadence/contracts/EsPANTAToken.cdc" },
+    "PriceFeed": { "source": "./cadence/contracts/PriceFeed.cdc" },
+    "Vault": { "source": "./cadence/contracts/Vault.cdc" },
+    "PositionManager": { "source": "./cadence/contracts/PositionManager.cdc" },
+    "MockUSDCFaucet": { "source": "./cadence/contracts/MockUSDCFaucet.cdc" },
+    "StakingRewards": { "source": "./cadence/contracts/StakingRewards.cdc" }
+  },
+  "dependencies": {
+    "FungibleToken": {
+      "source": "mainnet://f233dcee88fe0abe.FungibleToken",
+      "aliases": { "testnet": "9a0766d93b6608b7" }
+    },
+    "FlowToken": {
+      "source": "mainnet://1654653399040a61.FlowToken",
+      "aliases": { "testnet": "7e60df042a9c0868" }
+    }
+  },
+  "networks": {
+    "testnet": "access.devnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "panta-testnet": {
+      "address": "<DEPLOY_ADDRESS>",
+      "key": { "type": "file", "location": "panta-testnet.pkey" }
+    }
+  },
+  "deployments": {
+    "testnet": {
+      "panta-testnet": [
+        "MockUSDC",
+        "PANTAToken",
+        "PLPToken",
+        "EsPANTAToken",
+        "PriceFeed",
+        "Vault",
+        "PositionManager",
+        "MockUSDCFaucet",
+        "StakingRewards"
+      ]
+    }
+  }
+}

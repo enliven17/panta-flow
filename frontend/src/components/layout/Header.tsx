@@ -66,7 +66,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#111] border border-[#222] text-[12px] text-[var(--text-secondary)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--green)] shadow-[0_0_8px_var(--green)]" />
-            <span className="font-medium">Initia EVM</span>
+            <span className="font-medium">Flow Testnet</span>
           </div>
           <ConnectButton onConnectedClick={toggle} />
         </div>

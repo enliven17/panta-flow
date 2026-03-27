@@ -1,5 +1,7 @@
+// Flow Testnet version — EVM addresses (Initia) and Flow Testnet addresses are both supported
 import fs from 'fs'
 import path from 'path'
+import { FLOW_CONTRACT_ADDRESSES } from './flow'
 
 interface DeployedAddresses {
   Vault?: string
@@ -36,3 +38,9 @@ export function getAddress(key: string): `0x${string}` {
 }
 
 export default addresses
+
+// Returns a Flow Testnet contract address by contract name
+export function getFlowAddress(key: string): string {
+  const addr = FLOW_CONTRACT_ADDRESSES[key as keyof typeof FLOW_CONTRACT_ADDRESSES]
+  return addr || ""
+}

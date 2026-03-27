@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express'
-import { getCurrentPrices, getPriceHistory } from '../services/priceService'
+import { getPrices, getPriceHistory } from '../services/priceService'
 
 const router = Router()
 
 router.get('/prices', (_req: Request, res: Response) => {
-  res.json(getCurrentPrices())
+  res.json(getPrices())
 })
 
 router.get('/prices/history', (req: Request, res: Response) => {

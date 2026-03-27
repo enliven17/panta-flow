@@ -1,28 +1,12 @@
-const HERMES_URL = "https://hermes.pyth.network/v2/updates/price/latest"
-const ETH_FEED_ID = "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace"
-const BTC_FEED_ID = "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"
+import { executeScript } from '../config/flow'
 
-interface HermesResponse {
-  binary: {
-    encoding: "hex"
-    data: string[]
-  }
-  parsed: Array<{
-    id: string
-    price: {
-      price: string
-      conf: string
-      expo: number
-      publish_time: number
-    }
-    ema_price: {
-      price: string
-      conf: string
-      expo: number
-      publish_time: number
-    }
-  }>
+// IncrementFi oracle Cadence script for FLOW/USD price
+const FLOW_PRICE_SCRIPT = `
+import PublicPriceOracle from 0x8232ce4a3aff4e94
+access(all) fun main(): UFix64 {
+  return PublicPriceOracle.getLatestPrice(symbol: "FLOW/USD")
 }
+`
 
 export interface OHLCVCandle {
   time: number
@@ -51,13 +35,16 @@ interface TokenPriceState {
 
 const MAX_CANDLES = 1000
 
+// Cached prices — used as fallback on oracle failure
+const cachedPrices: { FLOW: string; USDC: string; ETH: string; BTC: string } = {
+  FLOW: '0',
+  USDC: '1.00',
+  ETH: '0',
+  BTC: '0',
+}
+
 const state: Record<string, TokenPriceState> = {
-  ETH: {
-    currentPrice: 0,
-    candles: { '1m': [], '5m': [], '15m': [], '1h': [], '4h': [], '1d': [] },
-    currentCandle: { '1m': null, '5m': null, '15m': null, '1h': null, '4h': null, '1d': null },
-  },
-  BTC: {
+  FLOW: {
     currentPrice: 0,
     candles: { '1m': [], '5m': [], '15m': [], '1h': [], '4h': [], '1d': [] },
     currentCandle: { '1m': null, '5m': null, '15m': null, '1h': null, '4h': null, '1d': null },
@@ -71,7 +58,6 @@ function updateCandle(token: string, price: number, timestamp: number) {
   for (const interval of Object.keys(INTERVAL_SECONDS) as Interval[]) {
     const intervalSec = INTERVAL_SECONDS[interval]
     const bucketTime = Math.floor(timestamp / intervalSec) * intervalSec
-
     const current = tokenState.currentCandle[interval]
 
     if (!current || current.time !== bucketTime) {
@@ -97,50 +83,29 @@ function updateCandle(token: string, price: number, timestamp: number) {
   }
 }
 
-function normalizePythPrice(priceStr: string, expo: number): number {
-  return parseInt(priceStr) * Math.pow(10, expo)
-}
-
 export async function pollPrices() {
   try {
-    const url = `${HERMES_URL}?ids[]=${ETH_FEED_ID}&ids[]=${BTC_FEED_ID}`
-    const response = await fetch(url)
+    // Fetch FLOW/USD from IncrementFi oracle via Cadence script
+    const flowPriceRaw: string = await executeScript(FLOW_PRICE_SCRIPT)
+    const flowPrice = parseFloat(flowPriceRaw)
 
-    if (!response.ok) {
-      throw new Error(`Hermes API error: ${response.status} ${response.statusText}`)
+    if (flowPrice > 0) {
+      state.FLOW.currentPrice = flowPrice
+      const now = Math.floor(Date.now() / 1000)
+      updateCandle('FLOW', flowPrice, now)
+      cachedPrices.FLOW = flowPrice.toFixed(4)
     }
 
-    const data: HermesResponse = await response.json()
-    const now = Math.floor(Date.now() / 1000)
-
-    for (const parsed of data.parsed) {
-      const id = parsed.id.replace(/^0x/, '')
-      const ethId = ETH_FEED_ID.replace(/^0x/, '')
-      const btcId = BTC_FEED_ID.replace(/^0x/, '')
-
-      const price = normalizePythPrice(parsed.price.price, parsed.price.expo)
-
-      if (price <= 0) continue
-
-      if (id === ethId) {
-        state.ETH.currentPrice = price
-        updateCandle('ETH', price, now)
-      } else if (id === btcId) {
-        state.BTC.currentPrice = price
-        updateCandle('BTC', price, now)
-      }
-    }
+    // USDC/USD is always 1.0 (stable)
+    cachedPrices.USDC = '1.00'
   } catch (err) {
-    // Keep previous cached prices on error
-    console.error('[priceService] Failed to fetch Pyth Hermes prices:', err)
+    // On oracle failure, keep cached prices (fallback)
+    console.error('[priceService] Failed to fetch Flow oracle prices:', err)
   }
 }
 
-export function getCurrentPrices(): { ETH: string; BTC: string } {
-  return {
-    ETH: state.ETH.currentPrice > 0 ? state.ETH.currentPrice.toFixed(2) : '0',
-    BTC: state.BTC.currentPrice > 0 ? state.BTC.currentPrice.toFixed(2) : '0',
-  }
+export function getPrices(): { FLOW: string; USDC: string; ETH: string; BTC: string } {
+  return { ...cachedPrices }
 }
 
 export function getPriceHistory(token: string, interval: Interval, limit: number): OHLCVCandle[] {
@@ -154,48 +119,7 @@ export function getPriceHistory(token: string, interval: Interval, limit: number
   return all.slice(-limit)
 }
 
-const BINANCE_SYMBOLS: Record<string, string> = {
-  ETH: 'ETHUSDT',
-  BTC: 'BTCUSDT',
-}
-
-async function seedHistoricalCandles(token: string, interval: Interval, limit = 500) {
-  const symbol = BINANCE_SYMBOLS[token]
-  if (!symbol) return
-  try {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`Binance API error: ${res.status}`)
-    const rows: [number, string, string, string, string, string][] = await res.json()
-    const tokenState = state[token]
-    if (!tokenState) return
-    const mapped = rows.map((row) => ({
-      time: Math.floor(row[0] / 1000),
-      open: parseFloat(row[1]),
-      high: parseFloat(row[2]),
-      low: parseFloat(row[3]),
-      close: parseFloat(row[4]),
-      volume: parseFloat(row[5]),
-    }))
-    // Last row from Binance is the currently open (unclosed) candle — put it in currentCandle to avoid duplicates
-    tokenState.candles[interval] = mapped.slice(0, -1)
-    tokenState.currentCandle[interval] = mapped[mapped.length - 1] ?? null
-    console.log(`[priceService] Seeded ${tokenState.candles[interval].length} ${interval} candles for ${token}`)
-  } catch (err) {
-    console.error(`[priceService] Failed to seed ${interval} candles for ${token}:`, err)
-  }
-}
-
-async function seedAllHistoricalData() {
-  const intervals: Interval[] = ['1m', '5m', '1h', '1d']
-  const tokens = ['ETH', 'BTC']
-  await Promise.all(tokens.flatMap((t) => intervals.map((iv) => seedHistoricalCandles(t, iv))))
-}
-
 export function startPricePolling() {
-  // Seed historical candles first, then start live polling
-  seedAllHistoricalData().then(() => {
-    pollPrices()
-    setInterval(pollPrices, 3_000)
-  })
+  pollPrices()
+  setInterval(pollPrices, 3_000)
 }

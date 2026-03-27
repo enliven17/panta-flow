@@ -1,83 +1,79 @@
 'use client'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fcl, FLOW_FAUCET_URL } from '@/lib/config/flow'
+import { useFlowNetwork } from './useFlowNetwork'
 
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { ADDRESSES } from '@/lib/contracts/addresses'
-
-const FAUCET_TOKEN_ABI = [
-  {
-    name: '_claimedAt',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: '', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'DROPLET_INTERVAL',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'claimDroplet',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: [],
-  },
-  {
-    name: '_isFaucetEnabled',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'bool' }],
-  },
-] as const
-
-export function useFaucet(tokenAddress: `0x${string}`) {
-  const { address } = useAccount()
-
-  const { data: lastClaimedAt } = useReadContract({
-    address: tokenAddress,
-    abi: FAUCET_TOKEN_ABI,
-    functionName: '_claimedAt',
-    args: [address ?? '0x0000000000000000000000000000000000000000'],
-    query: { enabled: !!address },
-  })
-
-  const { data: isFaucetEnabled } = useReadContract({
-    address: tokenAddress,
-    abi: FAUCET_TOKEN_ABI,
-    functionName: '_isFaucetEnabled',
-  })
-
-  const DROPLET_INTERVAL = 8 * 60 * 60 // 8 hours in seconds
-
-  const now = Math.floor(Date.now() / 1000)
-  const nextClaimAt = lastClaimedAt ? Number(lastClaimedAt) + DROPLET_INTERVAL : 0
-  const canClaim = now >= nextClaimAt
-  const secondsUntilClaim = Math.max(0, nextClaimAt - now)
-
-  const { writeContract, data: txHash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash: txHash,
-  })
-
-  function claim() {
-    writeContract({
-      address: tokenAddress,
-      abi: FAUCET_TOKEN_ABI,
-      functionName: 'claimDroplet',
-    })
+const GET_FAUCET_BALANCE_SCRIPT = `
+  import MockUSDCFaucet from 0xPLACEHOLDER
+  access(all) fun main(): UFix64 {
+    return MockUSDCFaucet.getReserveBalance()
   }
+`
 
-  return {
-    canClaim: canClaim && !!isFaucetEnabled,
-    secondsUntilClaim,
-    claim,
-    isPending,
-    isConfirming,
-    isSuccess,
-    isFaucetEnabled,
+const CLAIM_USDC_TRANSACTION = `
+  import FungibleToken from 0x9a0766d93b6608b7
+  import MockUSDCFaucet from 0xFAUCETDEPLOYER
+  import MockUSDC from 0xMOCKUSDCDEPLOYER
+
+  transaction {
+    let usdcMinter: &MockUSDC.Minter
+    let usdcReceiver: &{FungibleToken.Receiver}
+    let signerAddress: Address
+
+    prepare(signer: auth(BorrowValue) &Account) {
+      self.signerAddress = signer.address
+
+      self.usdcMinter = signer.storage.borrow<&MockUSDC.Minter>(
+        from: /storage/mockUSDCMinter
+      ) ?? panic("Could not borrow MockUSDC Minter from /storage/mockUSDCMinter")
+
+      if signer.storage.borrow<&MockUSDC.Vault>(from: MockUSDC.VaultStoragePath) == nil {
+        signer.storage.save(
+          <- MockUSDC.createEmptyVault(vaultType: Type<@MockUSDC.Vault>()),
+          to: MockUSDC.VaultStoragePath
+        )
+        signer.capabilities.publish(
+          signer.capabilities.storage.issue<&{FungibleToken.Receiver}>(MockUSDC.VaultStoragePath),
+          at: MockUSDC.VaultPublicPath
+        )
+      }
+
+      self.usdcReceiver = signer.storage.borrow<&{FungibleToken.Receiver}>(
+        from: MockUSDC.VaultStoragePath
+      ) ?? panic("Could not borrow signer's MockUSDC vault receiver")
+    }
+
+    execute {
+      let claimAmount = MockUSDCFaucet.claimTokens(recipient: self.signerAddress)
+      let usdcVault <- self.usdcMinter.mintTokens(amount: claimAmount)
+      self.usdcReceiver.deposit(from: <- usdcVault)
+    }
   }
+`
+
+export function useFaucetBalance() {
+  return useQuery({
+    queryKey: ['faucetBalance'],
+    queryFn: () => fcl.query({ cadence: GET_FAUCET_BALANCE_SCRIPT }),
+    refetchInterval: 30_000,
+  })
 }
+
+export function useClaimFaucet() {
+  const queryClient = useQueryClient()
+  const { isConnected } = useFlowNetwork()
+
+  return useMutation({
+    mutationFn: () =>
+      fcl.mutate({
+        cadence: CLAIM_USDC_TRANSACTION,
+        limit: 100,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['faucetBalance'] })
+    },
+    meta: { enabled: isConnected },
+  })
+}
+
+export { FLOW_FAUCET_URL }
