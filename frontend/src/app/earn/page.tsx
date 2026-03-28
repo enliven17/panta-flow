@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
-import { ADDRESSES } from '@/lib/contracts/addresses'
 
 const TokenComposition = dynamic(() => import('@/components/earn/TokenComposition').then(mod => mod.TokenComposition), { ssr: false })
 const EarnStats = dynamic(() => import('@/components/earn/EarnStats').then(mod => mod.EarnStats), { ssr: false })
@@ -28,10 +27,8 @@ export default function EarnPage() {
             {/* FaucetCard */}
             <div className="rounded-[28px] border border-[#1A1A1A] bg-[#0E0E0E] shadow-2xl p-10 flex flex-col">
               <FaucetCard
-                tokenAddress={ADDRESSES.USDC}
                 symbol="USDC"
                 amount="1,000"
-                decimals={6}
                 isSimple
               />
             </div>

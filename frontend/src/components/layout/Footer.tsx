@@ -8,7 +8,7 @@ export function Footer() {
           </div>
           <span className="text-xs font-bold tracking-[0.2em] text-[var(--text-muted)]">PANTA</span>
         </div>
-        <span className="text-xs text-[var(--text-ghost)]">Perpetual DEX on Initia EVM Testnet</span>
+        <span className="text-xs text-[var(--text-ghost)]">Perpetual DEX on Flow Testnet</span>
       </div>
     </footer>
   )

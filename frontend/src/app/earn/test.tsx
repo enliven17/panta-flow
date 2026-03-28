@@ -2,8 +2,6 @@
 
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
-import { ADDRESSES } from '@/lib/contracts/addresses'
-
 const TokenComposition = dynamic(() => import('@/components/earn/TokenComposition').then(mod => mod.TokenComposition), { ssr: false })
 const EarnStats = dynamic(() => import('@/components/earn/EarnStats').then(mod => mod.EarnStats), { ssr: false })
 const EarnActions = dynamic(() => import('@/components/earn/EarnActions').then(mod => mod.EarnActions), { ssr: false })

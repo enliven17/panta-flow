@@ -1,11 +1,11 @@
 import { createConfig, http } from 'wagmi'
-import { initiaPrivyWalletConnector } from '@initia/interwovenkit-react'
-import { initiaTestnet } from './chains'
+import { injected } from 'wagmi/connectors'
+import { flowEvmTestnet } from './chains'
 
 export const wagmiConfig = createConfig({
-  connectors: [initiaPrivyWalletConnector],
-  chains: [initiaTestnet],
+  connectors: [injected()],
+  chains: [flowEvmTestnet],
   transports: {
-    [initiaTestnet.id]: http('https://rpc.evm.testnet.initia.xyz'),
+    [flowEvmTestnet.id]: http('https://testnet.evm.nodes.onflow.org'),
   },
 })

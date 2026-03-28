@@ -1,16 +1,16 @@
 import { defineChain } from 'viem'
 
-export const initiaTestnet = defineChain({
-  id: 1234,
-  name: 'Initia EVM Testnet',
-  nativeCurrency: { name: 'INIT', symbol: 'INIT', decimals: 18 },
+export const flowEvmTestnet = defineChain({
+  id: 646,
+  name: 'Flow EVM Testnet',
+  nativeCurrency: { name: 'Flow', symbol: 'FLOW', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc.evm.testnet.initia.xyz'] },
+    default: { http: ['https://testnet.evm.nodes.onflow.org'] },
   },
   blockExplorers: {
     default: {
-      name: 'Initia Explorer',
-      url: 'https://explorer.evm.testnet.initia.xyz',
+      name: 'Flow Diver',
+      url: 'https://testnet.flowdiver.io',
     },
   },
   testnet: true,

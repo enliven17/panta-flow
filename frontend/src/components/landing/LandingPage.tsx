@@ -204,7 +204,7 @@ export function LandingPage() {
           <FadeBlurIn delay={0.55}>
             <p className="text-sm sm:text-base text-white/40 font-medium max-w-sm mb-10 leading-relaxed">
               BTC and ETH perpetuals with up to 10x leverage.
-              Institutional-grade execution on Initia.
+              Institutional-grade execution on Flow.
             </p>
           </FadeBlurIn>
 

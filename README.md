@@ -1,46 +1,49 @@
-# Initia Testnet PerpDEX (GMX v1 Fork)
+# PantaDEX — Perpetual DEX on Flow
 
-GMX v1 kaynak kodlarından Initia EVM Testnet için uyarlanmış perpetual DEX.
+Flow Testnet üzerinde çalışan Cadence tabanlı perpetual DEX. GMX v1 mimarisinden ilham alınarak Flow'a native Cadence kontratları ile yeniden yazılmıştır.
 
 ## Mimari
 
 ```
-Vault.sol           ← Ana kontrat: pozisyon, likidite, fiyat
-VaultPriceFeed.sol  ← Oracle entegrasyonu (Initia Slinky ile değiştir)
-GlpManager.sol      ← Likidite havuzu (GLP = LP token)
-Router.sol          ← Kullanıcı girişi
-PositionRouter.sol  ← Async pozisyon açma/kapama
-OrderBook.sol       ← Limit order sistemi
-ShortsTracker.sol   ← Short pozisyon takibi
+flow-perpdex/cadence/contracts/
+├── Vault.cdc             ← Ana kontrat: pozisyon, likidite, fiyat
+├── PositionManager.cdc   ← Pozisyon açma/kapama/likidasyon
+├── PriceFeed.cdc         ← Oracle entegrasyonu (IncrementFi)
+├── PANTAToken.cdc        ← Governance token
+├── PLPToken.cdc          ← Liquidity provider token
+├── EsPANTAToken.cdc      ← Escrowed PANTA (staking rewards)
+├── StakingRewards.cdc    ← Staking sistemi
+├── MockUSDC.cdc          ← Test USDC token
+└── MockUSDCFaucet.cdc    ← Test token faucet
 ```
 
 ## Kurulum
 
 ```bash
 npm install
-cp .env.example .env
-# .env dosyasına private key ekle: PRIVATE_KEY=0x...
+# Flow CLI kur: https://docs.onflow.org/flow-cli/install/
 ```
 
-## Deploy (Initia Testnet)
+## Deploy (Flow Testnet)
 
 ```bash
-# 1. Temel kontratları deploy et
-npx hardhat run scripts/deploy/deployAll.js --network initia_testnet
-
-# 2. Position Router ve OrderBook deploy et
-npx hardhat run scripts/deploy/deployPositionRouter.js --network initia_testnet
+cd flow-perpdex
+# flow.json içindeki <DEPLOY_ADDRESS> ve pkey dosyasını doldur
+flow project deploy --network testnet
 ```
 
-## Initia Testnet Bilgileri
+## Flow Testnet Bilgileri
 
-- RPC: https://rpc.evm.testnet.initia.xyz
-- Explorer: https://explorer.evm.testnet.initia.xyz
-- Faucet: https://faucet.testnet.initia.xyz
+- Access Node: https://rest-testnet.onflow.org
+- Explorer: https://testnet.flowscan.io
+- Faucet: https://faucet.flow.com/fund-account
 
-## Önemli Notlar
+## Frontend & Backend
 
-1. **Oracle**: VaultPriceFeed.sol içinde Chainlink yerine Initia'nın
-   yerleşik Slinky oracle'ını kullanmak için `setTokenConfig()` çağır
-2. **WETH**: Initia testnet'te wrapped native token adresini güncelle
-3. **GLP Havuzu**: Test için önce sahte tokenlar ile havuzu doldur
+```bash
+# Frontend (Next.js + FCL)
+cd frontend && npm install && npm run dev
+
+# Backend (Express + Flow REST API)
+cd backend && npm install && npm run dev
+```

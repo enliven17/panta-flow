@@ -16,8 +16,8 @@ const FEATURES = [
   },
   {
     title: 'Native Integrity',
-    subtitle: 'Slinky Oracle',
-    description: 'Direct integration with Initia Slinky. Experience zero-latency price feeds directly from the precompile.',
+    subtitle: 'Flow Oracle',
+    description: 'Direct integration with IncrementFi oracle on Flow. Experience zero-latency price feeds on-chain.',
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />

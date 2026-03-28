@@ -1,14 +1,13 @@
 'use client'
 
-import { useAccount } from 'wagmi'
+import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { Sidebar } from './Sidebar'
-import { Header } from './Header'
 import { WalletDrawer } from './WalletDrawer'
 import { useWalletDrawer } from './WalletDrawerContext'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { open, close, toggle } = useWalletDrawer()
-  const { isConnected } = useAccount()
+  const { open, close } = useWalletDrawer()
+  const { isConnected } = useFlowNetwork()
 
   return (
     <>

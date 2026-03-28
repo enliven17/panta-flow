@@ -16,8 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'PANTA — Perpetual DEX on Initia',
-  description: 'Trade perpetuals with up to 10x leverage on Initia EVM Testnet. Powered by Slinky oracle.',
+  title: 'PANTA — Perpetual DEX on Flow',
+  description: 'Trade perpetuals with up to 10x leverage on Flow Testnet. Powered by IncrementFi oracle.',
 }
 
 export default function RootLayout({

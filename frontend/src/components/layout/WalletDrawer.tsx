@@ -1,26 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAccount, useDisconnect, useBalance, useReadContract } from 'wagmi'
-import { useInterwovenKit } from '@initia/interwovenkit-react'
-import { ADDRESSES } from '@/lib/contracts/addresses'
-
-const ERC20_ABI = [
-  {
-    name: 'balanceOf',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'decimals',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint8' }],
-  },
-] as const
+import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 
 interface WalletDrawerProps {
   open: boolean
@@ -48,43 +29,13 @@ function shortenAddr(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
-function formatBalance(raw: bigint | undefined, decimals: number, displayDecimals = 4): string {
-  if (raw === undefined) return '—'
-  const divisor = BigInt(10 ** decimals)
-  const whole = raw / divisor
-  const frac = raw % divisor
-  const fracStr = frac.toString().padStart(decimals, '0').slice(0, displayDecimals)
-  return `${whole}.${fracStr}`
-}
-
 export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
-  const { address } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { username } = useInterwovenKit()
-
-  // Native INIT balance
-  const { data: nativeBalance } = useBalance({
-    address,
-    query: { enabled: !!address },
-  })
-
-  // USDC balance
-  const { data: usdcRaw } = useReadContract({
-    address: ADDRESSES.USDC,
-    abi: ERC20_ABI,
-    functionName: 'balanceOf',
-    args: [address ?? '0x0000000000000000000000000000000000000000'],
-    query: { enabled: !!address && ADDRESSES.USDC !== '0x0000000000000000000000000000000000000000' },
-  })
+  const { user, isConnected, disconnect } = useFlowNetwork()
+  const address = user.addr
 
   function copyAddress() {
     if (address) navigator.clipboard.writeText(address)
   }
-
-  const usdcDisplay = formatBalance(usdcRaw as bigint | undefined, 6, 2)
-  const initDisplay = nativeBalance
-    ? parseFloat(nativeBalance.formatted).toFixed(4)
-    : '—'
 
   return (
     <AnimatePresence>
@@ -126,7 +77,7 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
                 </svg>
               </div>
               <span className="text-xs font-mono text-[#888] flex-1 truncate">
-                {username ?? (address ? shortenAddr(address) : '—')}
+                {address ? shortenAddr(address) : '—'}
               </span>
               <button
                 onClick={copyAddress}
@@ -137,7 +88,7 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
               </button>
               {address && (
                 <a
-                  href={`https://explorer.evm.testnet.initia.xyz/address/${address}`}
+                  href={`https://testnet.flowscan.io/account/${address}`}
                   target="_blank"
                   rel="noreferrer"
                   className="p-1 rounded text-[#444] hover:text-[#888] transition-colors"
@@ -154,15 +105,11 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
             <div className="px-4 py-5 space-y-5">
               <div>
                 <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">USDC</p>
-                <p className="text-2xl font-bold tabular-nums text-white">
-                  {usdcDisplay !== '—' ? `$${usdcDisplay}` : '—'}
-                </p>
+                <p className="text-2xl font-bold tabular-nums text-white">—</p>
               </div>
               <div>
-                <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">INIT</p>
-                <p className="text-lg font-semibold tabular-nums text-[#666]">
-                  {initDisplay}
-                </p>
+                <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">FLOW</p>
+                <p className="text-lg font-semibold tabular-nums text-[#666]">—</p>
               </div>
             </div>
 
@@ -185,14 +132,14 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
             <div className="px-4">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#111] border border-[#1a1a1a]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--green)] shadow-[0_0_6px_var(--green)]" />
-                <span className="text-[10px] text-[#555] font-medium">Initia EVM Testnet</span>
+                <span className="text-[10px] text-[#555] font-medium">Flow Testnet</span>
               </div>
             </div>
 
             {/* Disconnect */}
             <div className="mt-auto px-4 py-4">
               <button
-                onClick={() => { disconnect(); onClose() }}
+                onClick={() => { disconnect(); onClose(); }}
                 className="w-full py-2 text-xs text-[#444] hover:text-[#cc3333] transition-colors duration-150"
               >
                 Disconnect

@@ -166,7 +166,7 @@ export function LeaderboardTable() {
                       {trader.address.slice(2, 4).toUpperCase()}
                     </div>
                     <a
-                      href={`https://explorer.evm.testnet.initia.xyz/address/${trader.address}`}
+                      href={`https://testnet.flowscan.io/account/${trader.address}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-xs font-mono text-[#666] hover:text-white transition-colors truncate"

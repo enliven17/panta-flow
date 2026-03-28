@@ -3,8 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useAccount } from 'wagmi'
-import { useInterwovenKit } from '@initia/interwovenkit-react'
+import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { useWalletDrawer } from './WalletDrawerContext'
 
 interface SidebarItem {
@@ -92,11 +91,10 @@ function SidebarButton({ item, isActive }: { item: SidebarItem; isActive: boolea
 }
 
 function WalletButton({ onConnectedClick }: { onConnectedClick: () => void }) {
-  const { address, isConnected } = useAccount()
-  const { openConnect, username } = useInterwovenKit()
+  const { user, isConnected, connect } = useFlowNetwork()
 
-  if (isConnected && address) {
-    const label = username ?? `${address.slice(0, 4)}..${address.slice(-3)}`
+  if (isConnected && user.addr) {
+    const label = `${user.addr.slice(0, 4)}..${user.addr.slice(-3)}`
 
     return (
       <div className="group relative flex px-2 w-full justify-center">
@@ -104,11 +102,9 @@ function WalletButton({ onConnectedClick }: { onConnectedClick: () => void }) {
           onClick={onConnectedClick}
           className="relative flex flex-col items-center gap-1.5 w-11 group/btn"
         >
-          {/* Avatar */}
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-[11px] font-black text-[var(--accent)] bg-[#111] border border-[#2a2a2a] group-hover/btn:border-[var(--accent)] group-hover/btn:scale-105 transition-all duration-200">
-            {(username ?? address).slice(0, 2).toUpperCase()}
+            {user.addr.slice(2, 4).toUpperCase()}
           </div>
-          {/* Active dot */}
           <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[var(--green)] border-2 border-[#080808] shadow-[0_0_6px_var(--green)]" />
         </button>
         <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-[var(--surface-3)] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 shadow-xl border border-[var(--border-subtle)]">
@@ -121,7 +117,7 @@ function WalletButton({ onConnectedClick }: { onConnectedClick: () => void }) {
   return (
     <div className="group relative flex px-2 w-full justify-center">
       <button
-        onClick={openConnect}
+        onClick={connect}
         className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#111] border border-[#2a2a2a] text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[#151515] hover:scale-105 active:scale-95 transition-all duration-200"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -166,7 +162,7 @@ export function Sidebar() {
         <div className="group relative flex items-center justify-center w-10 h-10 rounded-xl bg-[#111] border border-[#222] transition-all hover:border-[var(--green-muted)] cursor-help">
           <span className="w-2 h-2 rounded-full bg-[var(--green)] shadow-[0_0_12px_var(--green)]" />
           <span className="pointer-events-none absolute left-full ml-3 px-2 py-1.5 rounded-md bg-[var(--surface-3)] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 shadow-xl border border-[var(--border-subtle)]">
-            Initia EVM
+            Flow Testnet
           </span>
         </div>
 
