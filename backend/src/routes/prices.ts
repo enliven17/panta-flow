@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { getPrices, getPriceHistory } from '../services/priceService'
+import { getPrices, getPriceHistory } from '../services/pythPriceService'
 
 const router = Router()
 

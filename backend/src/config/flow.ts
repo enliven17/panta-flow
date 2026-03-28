@@ -37,6 +37,6 @@ export async function executeScript(cadence: string, args: any[] = []): Promise<
   if (!response.ok) {
     throw new Error(`Flow script execution failed: ${response.statusText}`)
   }
-  const result = await response.json()
+  const result: any = await response.json()
   return JSON.parse(Buffer.from(result.value || result, 'base64').toString())
 }

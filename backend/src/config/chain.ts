@@ -1,22 +1,5 @@
-import { createPublicClient, http, defineChain } from 'viem'
-
-export const initiaTestnet = defineChain({
-  id: 1234,
-  name: 'Initia EVM Testnet',
-  nativeCurrency: { name: 'INIT', symbol: 'INIT', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://rpc.evm.testnet.initia.xyz'] },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Initia Explorer',
-      url: 'https://explorer.evm.testnet.initia.xyz',
-    },
-  },
-  testnet: true,
-})
-
-export const publicClient = createPublicClient({
-  chain: initiaTestnet,
-  transport: http('https://rpc.evm.testnet.initia.xyz'),
-})
+// Flow Testnet — Cadence contracts are accessed via FCL (see flow.ts)
+// This file is kept for any future Flow EVM interactions.
+export const FLOW_NETWORK = "testnet"
+export const FLOW_ACCESS_NODE = "https://rest-testnet.onflow.org"
+export const FLOW_BLOCK_EXPLORER = "https://testnet.flowscan.io"
