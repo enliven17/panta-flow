@@ -1,14 +1,41 @@
 {
   "contracts": {
-    "MockUSDC": { "source": "./cadence/contracts/MockUSDC.cdc" },
-    "PANTAToken": { "source": "./cadence/contracts/PANTAToken.cdc" },
-    "PLPToken": { "source": "./cadence/contracts/PLPToken.cdc" },
-    "EsPANTAToken": { "source": "./cadence/contracts/EsPANTAToken.cdc" },
-    "PriceFeed": { "source": "./cadence/contracts/PriceFeed.cdc" },
-    "Vault": { "source": "./cadence/contracts/Vault.cdc" },
-    "PositionManager": { "source": "./cadence/contracts/PositionManager.cdc" },
-    "MockUSDCFaucet": { "source": "./cadence/contracts/MockUSDCFaucet.cdc" },
-    "StakingRewards": { "source": "./cadence/contracts/StakingRewards.cdc" }
+    "MockUSDC": {
+      "source": "./cadence/contracts/MockUSDC.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "PANTAToken": {
+      "source": "./cadence/contracts/PANTAToken.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "PLPToken": {
+      "source": "./cadence/contracts/PLPToken.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "EsPANTAToken": {
+      "source": "./cadence/contracts/EsPANTAToken.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "PriceFeed": {
+      "source": "./cadence/contracts/PriceFeed.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "Vault": {
+      "source": "./cadence/contracts/Vault.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "PositionManager": {
+      "source": "./cadence/contracts/PositionManager.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "MockUSDCFaucet": {
+      "source": "./cadence/contracts/MockUSDCFaucet.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "StakingRewards": {
+      "source": "./cadence/contracts/StakingRewards.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
+    }
   },
   "dependencies": {
     "FungibleToken": {
@@ -21,11 +48,13 @@
     }
   },
   "networks": {
-    "testnet": "access.devnet.nodes.onflow.org:9000"
+    "testnet": "access.devnet.nodes.onflow.org:9000",
+    "emulator": "127.0.0.1:3569",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000"
   },
   "accounts": {
     "panta-testnet": {
-      "address": "<DEPLOY_ADDRESS>",
+      "address": "a6d1a763be01f1fa",
       "key": { "type": "file", "location": "panta-testnet.pkey" }
     }
   },

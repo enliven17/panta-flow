@@ -1,5 +1,5 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import EsPANTAToken from 0xESPANTADEPLOYER
+import EsPANTAToken from 0xPANTA
 
 /// startVesting.cdc
 /// Starts a 365-day linear vesting schedule by locking esPANTA tokens.

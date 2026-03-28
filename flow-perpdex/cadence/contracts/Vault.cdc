@@ -416,7 +416,8 @@ access(all) contract Vault {
     // Initializer
     // -------------------------------------------------------------------------
 
-    init(treasuryAddress: Address) {
+    init() {
+        // Default treasury is the deployer account; can be updated via Admin.setTreasuryAddress()
         self.SWAP_FEE_BPS = 30.0
         self.MARGIN_FEE_BPS = 10.0
         self.MAX_LEVERAGE = 50.0
@@ -427,7 +428,7 @@ access(all) contract Vault {
         self.aum = 0.0
         self.lpFeeAccumulator = 0.0
         self.treasuryFeeAccumulator = 0.0
-        self.treasuryAddress = treasuryAddress
+        self.treasuryAddress = self.account.address
 
         // Initialize token pools with zero values for USDC and FLOW
         self.tokenPools = {

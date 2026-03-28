@@ -50,7 +50,6 @@ access(all) contract EsPANTAToken: FungibleToken {
     access(all) event TokensBurned(amount: UFix64)
     access(all) event TokensWithdrawn(amount: UFix64, from: Address?)
     access(all) event TokensDeposited(amount: UFix64, to: Address?)
-    access(all) event Transfer(amount: UFix64, from: Address?, to: Address?)
     access(all) event WhitelistUpdated(address: Address, allowed: Bool)
     access(all) event VestingStarted(account: Address, amount: UFix64, startTime: UFix64)
     access(all) event VestingClaimed(account: Address, vestedAmount: UFix64, pantaAmount: UFix64)
@@ -104,10 +103,14 @@ access(all) contract EsPANTAToken: FungibleToken {
                 assert(allowed, message: "esPANTA transfer not allowed")
             }
 
-            vault.balance = 0.0
             self.balance = self.balance + amount
             emit TokensDeposited(amount: amount, to: self.owner?.address)
             destroy vault
+        }
+
+        /// Returns whether this vault has at least the given amount available.
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return self.balance >= amount
         }
 
         access(all) fun createEmptyVault(): @{FungibleToken.Vault} {
@@ -125,6 +128,9 @@ access(all) contract EsPANTAToken: FungibleToken {
         access(all) view fun getBalance(): UFix64 {
             return self.balance
         }
+
+        access(all) view fun getViews(): [Type] { return [] }
+        access(all) fun resolveView(_ view: Type): AnyStruct? { return nil }
     }
 
     // -----------------------------------------------------------------------
@@ -263,6 +269,9 @@ access(all) contract EsPANTAToken: FungibleToken {
     access(all) view fun getTotalSupply(): UFix64 {
         return self.totalSupply
     }
+
+    access(all) view fun getContractViews(resourceType: Type?): [Type] { return [] }
+    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? { return nil }
 
     // -----------------------------------------------------------------------
     // Contract initializer

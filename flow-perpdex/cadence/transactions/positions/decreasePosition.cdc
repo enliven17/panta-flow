@@ -1,5 +1,5 @@
-import Vault from 0xVAULTDEPLOYER
-import PositionManager from 0xPOSITIONMANAGERDEPLOYER
+import Vault from 0xPANTA
+import PositionManager from 0xPANTA
 
 /// decreasePosition.cdc
 /// Decreases or closes a leveraged long/short position.

@@ -1,5 +1,5 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import PANTAToken from 0xPANTADEPLOYER
+import PANTAToken from 0xPANTA
 
 /// Burn PANTA tokens from the signer's vault.
 /// Withdraws the given amount and calls PANTAToken.burnCallback to reduce total supply.

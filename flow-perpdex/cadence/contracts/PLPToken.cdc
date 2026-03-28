@@ -30,7 +30,6 @@ access(all) contract PLPToken: FungibleToken {
     access(all) event TokensBurned(amount: UFix64)
     access(all) event TokensWithdrawn(amount: UFix64, from: Address?)
     access(all) event TokensDeposited(amount: UFix64, to: Address?)
-    access(all) event Transfer(amount: UFix64, from: Address?, to: Address?)
     access(all) event WhitelistUpdated(address: Address, added: Bool)
 
     // -----------------------------------------------------------------------
@@ -75,24 +74,19 @@ access(all) contract PLPToken: FungibleToken {
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @PLPToken.Vault
             let amount = vault.balance
-
-            // Transfer whitelist check: the depositing owner must be whitelisted
-            // or this is an internal mint/burn operation (owner is nil)
             let caller = vault.owner?.address
-            if caller != nil {
-                let isWhitelisted = PLPToken.transferWhitelist[caller!] ?? false
-                if !isWhitelisted {
-                    // Destroy the vault before panicking to avoid resource loss
-                    vault.balance = 0.0
-                    destroy vault
-                    panic("PLP transfer not allowed")
-                }
+            let allowed = caller == nil || (PLPToken.transferWhitelist[caller!] ?? false)
+            destroy vault
+            if !allowed {
+                panic("PLP transfer not allowed")
             }
-
-            vault.balance = 0.0
             self.balance = self.balance + amount
             emit TokensDeposited(amount: amount, to: self.owner?.address)
-            destroy vault
+        }
+
+        /// Returns whether this vault has at least the given amount available.
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return self.balance >= amount
         }
 
         /// Create an empty vault of the same type.
@@ -111,6 +105,9 @@ access(all) contract PLPToken: FungibleToken {
         access(all) view fun getBalance(): UFix64 {
             return self.balance
         }
+
+        access(all) view fun getViews(): [Type] { return [] }
+        access(all) fun resolveView(_ view: Type): AnyStruct? { return nil }
     }
 
     // -----------------------------------------------------------------------
@@ -139,7 +136,6 @@ access(all) contract PLPToken: FungibleToken {
         access(all) fun burnPLP(vault: @Vault) {
             let amount = vault.balance
             PLPToken.totalSupply = PLPToken.totalSupply - amount
-            vault.balance = 0.0
             emit TokensBurned(amount: amount)
             destroy vault
         }
@@ -212,6 +208,9 @@ access(all) contract PLPToken: FungibleToken {
     access(all) fun createEmptyVault(vaultType: Type): @{FungibleToken.Vault} {
         return <- create Vault(balance: 0.0)
     }
+
+    access(all) view fun getContractViews(resourceType: Type?): [Type] { return [] }
+    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? { return nil }
 
     // -----------------------------------------------------------------------
     // Contract initializer

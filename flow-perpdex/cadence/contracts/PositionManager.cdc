@@ -161,9 +161,9 @@ access(all) contract PositionManager {
             isLong: isLong
         )
 
-        let newAveragePrice: UFix64
-        let newSize: UFix64
-        let newCollateral: UFix64
+        var newAveragePrice: UFix64 = 0.0
+        var newSize: UFix64 = 0.0
+        var newCollateral: UFix64 = 0.0
 
         if let existing = PositionManager.positions[key] {
             // Weighted average price for existing position
@@ -211,11 +211,9 @@ access(all) contract PositionManager {
             let newShortSize = prevShortSize + sizeDelta
 
             // Weighted average short price
-            let newAvgShortPrice: UFix64
+            var newAvgShortPrice: UFix64 = currentPrice
             if newShortSize > 0.0 {
                 newAvgShortPrice = (prevShortSize * prevAvgPrice + sizeDelta * currentPrice) / newShortSize
-            } else {
-                newAvgShortPrice = currentPrice
             }
 
             PositionManager.globalShortSizes[indexToken] = newShortSize
@@ -430,9 +428,10 @@ access(all) contract PositionManager {
     ///   remainingCollateral = collateral + pnl - liquidationFee
     ///   remainingCollateral < collateral * LIQUIDATION_THRESHOLD_RATE
     access(all) fun isLiquidatable(positionKey: String, currentPrice: UFix64): Bool {
-        guard let position = PositionManager.positions[positionKey] else {
+        if PositionManager.positions[positionKey] == nil {
             return false
         }
+        let position = PositionManager.positions[positionKey]!
 
         // Calculate PnL
         var pnl: UFix64 = 0.0

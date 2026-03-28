@@ -25,9 +25,6 @@ access(all) contract PANTAToken: FungibleToken {
     access(all) event TokensWithdrawn(amount: UFix64, from: Address?)
     access(all) event TokensDeposited(amount: UFix64, to: Address?)
 
-    // FungibleToken standard events (required by interface)
-    access(all) event Transfer(amount: UFix64, from: Address?, to: Address?)
-
     // -----------------------------------------------------------------------
     // Storage paths
     // -----------------------------------------------------------------------
@@ -70,10 +67,14 @@ access(all) contract PANTAToken: FungibleToken {
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @PANTAToken.Vault
             let amount = vault.balance
-            vault.balance = 0.0
             self.balance = self.balance + amount
             emit TokensDeposited(amount: amount, to: self.owner?.address)
             destroy vault
+        }
+
+        /// Returns whether this vault has at least the given amount available.
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return self.balance >= amount
         }
 
         /// Create an empty vault of the same type.
@@ -95,6 +96,9 @@ access(all) contract PANTAToken: FungibleToken {
         access(all) view fun getBalance(): UFix64 {
             return self.balance
         }
+
+        access(all) view fun getViews(): [Type] { return [] }
+        access(all) fun resolveView(_ view: Type): AnyStruct? { return nil }
     }
 
     // -----------------------------------------------------------------------
@@ -142,7 +146,6 @@ access(all) contract PANTAToken: FungibleToken {
     access(all) fun burnCallback(vault: @{FungibleToken.Vault}) {
         let pantaVault <- vault as! @PANTAToken.Vault
         let amount = pantaVault.balance
-        pantaVault.balance = 0.0
         PANTAToken.totalSupply = PANTAToken.totalSupply - amount
         emit TokensBurned(amount: amount)
         destroy pantaVault
@@ -163,6 +166,9 @@ access(all) contract PANTAToken: FungibleToken {
     access(all) view fun getTotalSupply(): UFix64 {
         return self.totalSupply
     }
+
+    access(all) view fun getContractViews(resourceType: Type?): [Type] { return [] }
+    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? { return nil }
 
     // -----------------------------------------------------------------------
     // Contract initializer

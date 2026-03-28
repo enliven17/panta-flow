@@ -1,5 +1,5 @@
-import Vault from 0xVAULTDEPLOYER
-import PositionManager from 0xPOSITIONMANAGERDEPLOYER
+import Vault from 0xPANTA
+import PositionManager from 0xPANTA
 
 /// liquidate.cdc
 /// Liquidates an undercollateralized position.

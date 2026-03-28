@@ -41,6 +41,17 @@ access(all) contract PriceFeed {
         }
     }
 
+    /// Return type for calculateSpread (Cadence has no tuple types)
+    access(all) struct SpreadResult {
+        access(all) let minPrice: UFix64
+        access(all) let maxPrice: UFix64
+
+        init(minPrice: UFix64, maxPrice: UFix64) {
+            self.minPrice = minPrice
+            self.maxPrice = maxPrice
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Contract-level state
     // -------------------------------------------------------------------------
@@ -63,11 +74,11 @@ access(all) contract PriceFeed {
         /// Manually update a cached price (used by keeper / fallback)
         access(all) fun updatePrice(symbol: String, price: UFix64) {
             assert(price > 0.0, message: "Price must be greater than zero")
-            let (minP, maxP) = PriceFeed.calculateSpread(midPrice: price)
+            let spread = PriceFeed.calculateSpread(midPrice: price)
             let ts = getCurrentBlock().timestamp
             PriceFeed.cachedPrices[symbol] = PriceData(
-                minPrice: minP,
-                maxPrice: maxP,
+                minPrice: spread.minPrice,
+                maxPrice: spread.maxPrice,
                 timestamp: ts
             )
             emit PriceUpdated(symbol: symbol, price: price, timestamp: ts)
@@ -163,15 +174,15 @@ access(all) contract PriceFeed {
         return true
     }
 
-    /// Calculates (minPrice, maxPrice) by applying SPREAD_BPS symmetrically around midPrice.
+    /// Calculates SpreadResult by applying SPREAD_BPS symmetrically around midPrice.
     /// spread = midPrice * SPREAD_BPS / 10000
     /// minPrice = midPrice - spread
     /// maxPrice = midPrice + spread
-    access(all) fun calculateSpread(midPrice: UFix64): (UFix64, UFix64) {
+    access(all) fun calculateSpread(midPrice: UFix64): SpreadResult {
         let spread = midPrice * self.SPREAD_BPS / 10000.0
         let minP = midPrice - spread
         let maxP = midPrice + spread
-        return (minP, maxP)
+        return SpreadResult(minPrice: minP, maxPrice: maxP)
     }
 
     // -------------------------------------------------------------------------

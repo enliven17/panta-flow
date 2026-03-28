@@ -1,6 +1,6 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import Vault from 0xVAULTDEPLOYER
-import PLPToken from 0xPLPDEPLOYER
+import Vault from 0xPANTA
+import PLPToken from 0xPANTA
 
 /// removeLiquidity.cdc
 /// Redeems PLP tokens and receives MockUSDC or FLOW in return.

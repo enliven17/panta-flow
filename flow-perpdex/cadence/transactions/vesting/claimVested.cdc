@@ -1,6 +1,6 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import EsPANTAToken from 0xESPANTADEPLOYER
-import PANTAToken from 0xPANTADEPLOYER
+import EsPANTAToken from 0xPANTA
+import PANTAToken from 0xPANTA
 
 /// claimVested.cdc
 /// Claims newly vested PANTA tokens from the signer's vesting schedule.

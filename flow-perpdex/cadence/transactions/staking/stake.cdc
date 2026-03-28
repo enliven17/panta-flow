@@ -1,4 +1,4 @@
-import StakingRewards from 0xSTAKINGDEPLOYER
+import StakingRewards from 0xPANTA
 
 /// stake.cdc
 /// Stakes PANTA or PLP tokens for the signer to earn esPANTA rewards.

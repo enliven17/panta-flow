@@ -1,5 +1,5 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import PANTAToken from 0xPANTADEPLOYER
+import PANTAToken from 0xPANTA
 
 /// Mint PANTA tokens using the Admin's Minter resource.
 /// The signer must have a PANTAToken.Minter stored at /storage/pantaTokenMinter.

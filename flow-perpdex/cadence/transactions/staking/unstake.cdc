@@ -1,4 +1,4 @@
-import StakingRewards from 0xSTAKINGDEPLOYER
+import StakingRewards from 0xPANTA
 
 /// unstake.cdc
 /// Unstakes PANTA or PLP tokens for the signer and returns the staked amount.

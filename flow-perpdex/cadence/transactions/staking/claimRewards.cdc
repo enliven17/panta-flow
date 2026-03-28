@@ -1,6 +1,6 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import StakingRewards from 0xSTAKINGDEPLOYER
-import EsPANTAToken from 0xESPANTADEPLOYER
+import StakingRewards from 0xPANTA
+import EsPANTAToken from 0xPANTA
 
 /// claimRewards.cdc
 /// Claims pending esPANTA staking rewards for the signer.

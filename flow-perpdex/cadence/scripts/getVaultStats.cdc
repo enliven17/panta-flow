@@ -1,7 +1,7 @@
 /// getVaultStats.cdc
 /// Returns AUM, pool amounts, and fee reserves for USDC and FLOW.
 /// Requirements: 11.6
-import Vault from 0xPLACEHOLDER
+import Vault from 0xPANTA
 
 access(all) struct VaultStats {
     access(all) let aum: UFix64
@@ -17,8 +17,8 @@ access(all) struct VaultStats {
 
 access(all) fun main(): VaultStats {
     let aum = Vault.getAUM()
-    let usdcPool = Vault.getTokenPool("USDC")
-    let flowPool = Vault.getTokenPool("FLOW")
+    let usdcPool = Vault.getTokenPool(token: "USDC")
+    let flowPool = Vault.getTokenPool(token: "FLOW")
 
     return VaultStats(aum: aum, usdcPool: usdcPool, flowPool: flowPool)
 }
