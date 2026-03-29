@@ -149,7 +149,21 @@ export function OrderPanel({ market }: OrderPanelProps) {
       <div className="p-6 rounded-2xl bg-[#1A1A1A] border border-[#222]">
         <div className="flex items-center justify-between mb-6">
           <span className="text-[12px] text-[#555] font-bold">Leverage</span>
-          <span className="text-[13px] font-bold text-white">{form.leverage.toFixed(1)}x</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={1}
+              max={10}
+              step={0.1}
+              value={form.leverage}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value)
+                if (!isNaN(v)) form.setLeverage(Math.min(10, Math.max(1, v)))
+              }}
+              className="w-14 bg-[#111] border border-[#2a2a2a] rounded-lg px-2 py-1 text-[13px] font-bold text-white text-right outline-none focus:border-[#444] tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-[13px] font-bold text-[#555]">x</span>
+          </div>
         </div>
         <div
           ref={sliderTrackRef}

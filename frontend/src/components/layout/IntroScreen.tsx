@@ -6,16 +6,9 @@ import { motion } from 'framer-motion'
 const LETTERS = ['P', 'A', 'N', 'T', 'A']
 const EASE = [0.16, 1, 0.3, 1] as const
 
-// Timing:
-//   0.20s – first letter appears
-//   0.68s – last letter appears  (0.2 + 4×0.12)
-//   0.40s animation per letter
-//   Hold until 1.15s, then exit
-//   Exit: letters drop + curtains split (0.70s)
-//   Done: 1.90s
-
-const EXIT_AT  = 1150
-const DONE_AT  = 1900
+// Timing
+const EXIT_AT = 950   // start exit (letters fade + curtains open)
+const DONE_AT = 1950  // fully done
 
 interface Props {
   onComplete: () => void
@@ -24,65 +17,62 @@ interface Props {
 export function IntroScreen({ onComplete }: Props) {
   const [isExiting, setIsExiting] = useState(false)
   const [isDone,    setIsDone]    = useState(false)
-  const letterY = useRef(0)
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   useEffect(() => {
-    const t1 = setTimeout(() => {
-      letterY.current = typeof window !== 'undefined' ? window.innerHeight * 0.35 : 280
-      setIsExiting(true)
-    }, EXIT_AT)
-
+    const t1 = setTimeout(() => setIsExiting(true), EXIT_AT)
     const t2 = setTimeout(() => {
       setIsDone(true)
-      onComplete()
+      onCompleteRef.current()
     }, DONE_AT)
-
     return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [onComplete])
+  }, [])
 
   if (isDone) return null
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ zIndex: 300 }}>
+    // bg-black fills screen — no gap between curtains
+    <div className="fixed inset-0 bg-[#050505]" style={{ zIndex: 300 }}>
 
-      {/* ── Top curtain ───────────────────────────────────────────────────── */}
+      {/* ── Top curtain ─────────────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-x-0 top-0 bg-[#050505]"
-        style={{ height: '50vh' }}
+        style={{ height: '50.5vh' }}           // slight overlap, no seam
         animate={isExiting ? { y: '-100%' } : { y: 0 }}
-        transition={{ duration: 0.68, ease: EASE, delay: 0.06 }}
+        transition={{ duration: 0.9, ease: EASE, delay: 0.05 }}
       />
 
-      {/* ── Bottom curtain ────────────────────────────────────────────────── */}
+      {/* ── Bottom curtain ──────────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-x-0 bottom-0 bg-[#050505]"
-        style={{ height: '50vh' }}
+        style={{ height: '50.5vh' }}
         animate={isExiting ? { y: '100%' } : { y: 0 }}
-        transition={{ duration: 0.68, ease: EASE, delay: 0.06 }}
+        transition={{ duration: 0.9, ease: EASE, delay: 0.05 }}
       />
 
-      {/* ── Letters ───────────────────────────────────────────────────────── */}
-      {/* Wrapper centers letters; motion.div shifts them down on exit */}
+      {/* ── Letters ─────────────────────────────────────────────────────── */}
       <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
         <motion.div
           className="flex items-center"
-          style={{ gap: 'clamp(6px, 1.5vw, 20px)' }}
-          animate={{ y: isExiting ? letterY.current : 0 }}
-          transition={{ duration: 0.62, ease: EASE }}
+          style={{ gap: 'clamp(10px, 2.5vw, 36px)' }}
+          animate={isExiting ? { y: 60, opacity: 0 } : { y: 0, opacity: 1 }}
+          transition={{ duration: 0.55, ease: EASE }}
         >
           {LETTERS.map((letter, i) => (
             <motion.span
               key={i}
               className="text-[#00C076] font-black leading-none select-none"
               style={{
-                fontSize: 'clamp(64px, 13vw, 148px)',
-                letterSpacing: '-0.05em',
+                fontSize: 'clamp(80px, 18vw, 200px)',
+                letterSpacing: '-0.03em',
               }}
-              initial={{ opacity: 0, y: 32, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              // No blur — too expensive on large text
+              initial={{ opacity: 0, y: 36 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{
-                delay: 0.2 + i * 0.12,
-                duration: 0.42,
+                delay: 0.1 + i * 0.1,
+                duration: 0.38,
                 ease: EASE,
               }}
             >
