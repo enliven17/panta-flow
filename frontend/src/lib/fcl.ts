@@ -73,18 +73,18 @@ export async function getUSDCBalance(address: string): Promise<number> {
   try {
     const result = await fcl.query({
       cadence: `
-        import FungibleToken from 0xFungibleToken
         import MockUSDC from 0xPANTA
         access(all) fun main(addr: Address): UFix64 {
           let vault = getAccount(addr)
-            .capabilities.borrow<&{FungibleToken.Balance}>(MockUSDC.VaultPublicPath)
+            .capabilities.borrow<&MockUSDC.Vault>(/public/mockUSDCVault)
           return vault?.balance ?? 0.0
         }
       `,
       args: (arg: any, t: any) => [arg(address, t.Address)],
     })
     return parseFloat(result as string)
-  } catch {
+  } catch (e) {
+    console.error('[getUSDCBalance]', e)
     return 0
   }
 }

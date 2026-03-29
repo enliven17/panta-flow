@@ -41,7 +41,7 @@ async function main() {
   }
 
   // Step 2: Refill faucet with 10M USDC reserve
-  console.log("\n[2/2] Filling faucet reserve (10,000,000 MockUSDC)...")
+  console.log("\n[2/3] Filling faucet reserve (10,000,000 MockUSDC)...")
   try {
     const txId = await sendTx(loadTx("admin/refillFaucet.cdc"), [
       { value: "10000000.00000000", type: (t: any) => t.UFix64 },
@@ -50,6 +50,24 @@ async function main() {
   } catch (err: any) {
     console.error("✗ Failed to fill faucet:", err?.message)
     process.exit(1)
+  }
+
+  // Step 3: Seed liquidity pools so traders can open positions
+  console.log("\n[3/3] Seeding liquidity pools (1,000,000 USDC + 500,000 FLOW)...")
+  try {
+    const txId = await sendTx(loadTx("admin/seedPool.cdc"), [
+      { value: "1000000.00000000", type: (t: any) => t.UFix64 }, // usdcAmount
+      { value: "500000.00000000",  type: (t: any) => t.UFix64 }, // flowAmount
+      { value: "0.03000000",       type: (t: any) => t.UFix64 }, // flowPriceUSD (will be overridden by live price, just initial seed)
+    ])
+    console.log(`✓ Pools seeded. txId=${txId}`)
+  } catch (err: any) {
+    if (err?.message?.includes("already") || err?.message?.includes("exceeded")) {
+      console.log("✓ Pool already has liquidity (skipped)")
+    } else {
+      console.error("✗ Failed to seed pools:", err?.message)
+      process.exit(1)
+    }
   }
 
   console.log("\n=== Admin init complete ===")

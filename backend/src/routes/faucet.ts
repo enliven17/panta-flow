@@ -116,4 +116,30 @@ router.post("/faucet/refill", async (req, res) => {
   }
 })
 
+// POST /api/admin/seed-pool  (deployer-only)
+// Seeds USDC and FLOW pools so traders can open positions
+router.post("/admin/seed-pool", async (req, res) => {
+  const { secret, usdcAmount, flowAmount, flowPriceUSD } = req.body
+  if (secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: "Forbidden" })
+  }
+
+  const usdc = typeof usdcAmount === "number" ? usdcAmount : 1_000_000
+  const flow = typeof flowAmount === "number" ? flowAmount : 500_000
+  const flowPrice = typeof flowPriceUSD === "number" ? flowPriceUSD : 0.03
+
+  try {
+    const cadence = loadTx("admin/seedPool.cdc")
+    const txId = await sendTx(cadence, [
+      { value: usdc.toFixed(8),      type: (t: any) => t.UFix64 },
+      { value: flow.toFixed(8),      type: (t: any) => t.UFix64 },
+      { value: flowPrice.toFixed(8), type: (t: any) => t.UFix64 },
+    ])
+    res.json({ success: true, txId, usdcAmount: usdc, flowAmount: flow })
+  } catch (err: any) {
+    console.error("[admin] seed-pool error:", err)
+    res.status(500).json({ error: err?.message })
+  }
+})
+
 export default router

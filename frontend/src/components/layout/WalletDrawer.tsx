@@ -38,14 +38,14 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
   const [flowBalance, setFlowBalance] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!address) {
+    if (!address || !open) {
       setUsdcBalance(null)
       setFlowBalance(null)
       return
     }
     getUSDCBalance(address).then(setUsdcBalance)
     getFlowBalance(address).then(setFlowBalance)
-  }, [address])
+  }, [address, open])
 
   function copyAddress() {
     if (address) navigator.clipboard.writeText(address)
