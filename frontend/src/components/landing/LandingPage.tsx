@@ -178,11 +178,7 @@ export function LandingPage() {
           className="absolute bottom-0 left-0 z-20 max-w-2xl"
           style={{ padding: '80px 56px' }}
         >
-          <FadeBlurIn delay={0.1}>
-            <span className="text-[11px] font-bold text-white/20 tracking-[0.3em] uppercase block mb-6">
-              01 — Panta Perpetuals
-            </span>
-          </FadeBlurIn>
+
 
           <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-8">
             <ClipRevealLine text="Perpetual" index={0} />
