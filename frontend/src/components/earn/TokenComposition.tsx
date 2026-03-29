@@ -3,8 +3,7 @@
 import { motion } from 'framer-motion'
 
 const POOL_COMPOSITION = [
-  { symbol: 'WETH', weight: 50, color: '#334155' },
-  { symbol: 'USDC', weight: 50, color: '#1e293b' },
+  { symbol: 'USDC', weight: 100, color: '#1e293b' },
 ]
 
 export function TokenComposition({ bare }: { bare?: boolean }) {

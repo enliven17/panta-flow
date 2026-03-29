@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
+import { getUSDCBalance, getFlowBalance } from '@/lib/fcl'
 
 interface WalletDrawerProps {
   open: boolean
@@ -32,6 +34,18 @@ function shortenAddr(addr: string) {
 export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
   const { user, isConnected, disconnect } = useFlowNetwork()
   const address = user.addr
+  const [usdcBalance, setUsdcBalance] = useState<number | null>(null)
+  const [flowBalance, setFlowBalance] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!address) {
+      setUsdcBalance(null)
+      setFlowBalance(null)
+      return
+    }
+    getUSDCBalance(address).then(setUsdcBalance)
+    getFlowBalance(address).then(setFlowBalance)
+  }, [address])
 
   function copyAddress() {
     if (address) navigator.clipboard.writeText(address)
@@ -105,11 +119,15 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
             <div className="px-4 py-5 space-y-5">
               <div>
                 <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">USDC</p>
-                <p className="text-2xl font-bold tabular-nums text-white">—</p>
+                <p className="text-2xl font-bold tabular-nums text-white">
+                  {usdcBalance === null ? '—' : usdcBalance.toFixed(2)}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">FLOW</p>
-                <p className="text-lg font-semibold tabular-nums text-[#666]">—</p>
+                <p className="text-lg font-semibold tabular-nums text-[#666]">
+                  {flowBalance === null ? '—' : flowBalance.toFixed(4)}
+                </p>
               </div>
             </div>
 

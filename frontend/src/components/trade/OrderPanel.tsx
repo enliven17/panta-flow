@@ -199,7 +199,7 @@ export function OrderPanel({ market }: OrderPanelProps) {
       {!isConnected ? (
         <button
           onClick={connect}
-          className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#2D60FF] to-[#5A88FF] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(45,96,255,0.3)] hover:shadow-[0_12px_28px_rgba(45,96,255,0.45)] active:scale-[0.98] transition-all"
+          className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#00C076] to-[#00E090] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)] active:scale-[0.98] transition-all"
         >
           Connect Wallet
         </button>
@@ -207,7 +207,7 @@ export function OrderPanel({ market }: OrderPanelProps) {
         <button
           onClick={handleOpenPosition}
           disabled={!form.isValid || form.isSubmitting || !leverageValidation.isValid}
-          className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#2D60FF] to-[#5A88FF] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(45,96,255,0.3)] hover:shadow-[0_12px_28px_rgba(45,96,255,0.45)] active:scale-[0.98] transition-all disabled:opacity-30 disabled:pointer-events-none"
+          className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#00C076] to-[#00E090] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)] active:scale-[0.98] transition-all disabled:opacity-30 disabled:pointer-events-none"
         >
           {form.isSubmitting ? (
             <div className="flex items-center justify-center gap-3">

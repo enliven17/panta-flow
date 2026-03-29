@@ -8,7 +8,7 @@ export function Hero() {
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-32 overflow-hidden bg-[#050505]">
       {/* Background radial glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[#1A33FF] opacity-[0.03] blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[#00C076] opacity-[0.03] blur-[150px]" />
         <div className="absolute top-1/2 left-1/3 w-[500px] h-[500px] rounded-full bg-[#8A33FF] opacity-[0.03] blur-[120px]" />
       </div>
 
@@ -25,7 +25,7 @@ export function Hero() {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-[#0A0A0A] border border-[#1A1A1A] mb-12 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
         >
-          <div className="w-2 h-2 rounded-full bg-[#1A33FF] shadow-[0_0_10px_#1A33FF]" />
+          <div className="w-2 h-2 rounded-full bg-[#00C076] shadow-[0_0_10px_#00C076]" />
           <span className="text-[11px] uppercase tracking-[0.2em] text-[#666] font-bold">
             Redefining Leverage Trading
           </span>

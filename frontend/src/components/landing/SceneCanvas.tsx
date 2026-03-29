@@ -70,8 +70,8 @@ export function SceneCanvas() {
       })()
 
       // ─── Animated color uniforms ──────────────────────────────────────
-      const colorUnifA = uniform(color(new (THREE as any).Color(0x050510)))
-      const colorUnifB = uniform(color(new (THREE as any).Color(0x1a33ff)))
+      const colorUnifA = uniform(color(new (THREE as any).Color(0x050a05)))
+      const colorUnifB = uniform(color(new (THREE as any).Color(0x00c076)))
 
       // ─── Single material ──────────────────────────────────────────────
       const mat = new (THREE as any).MeshPhysicalNodeMaterial()
@@ -95,7 +95,7 @@ export function SceneCanvas() {
 
       const kl = new (THREE as any).SpotLight(0xfff0e0, 8, 30, Math.PI / 4, 0.5, 1)
       kl.position.set(4, 3, 5); scene.add(kl)
-      const fl = new (THREE as any).SpotLight(0xd0e0ff, 3, 30, Math.PI / 3, 0.7, 1)
+      const fl = new (THREE as any).SpotLight(0xd0ffe8, 3, 30, Math.PI / 3, 0.7, 1)
       fl.position.set(-5, 1, 3); scene.add(fl)
       const rl = new (THREE as any).SpotLight(0xffffff, 6, 30, Math.PI / 4, 0.4, 1)
       rl.position.set(0, 4, -5); scene.add(rl)
@@ -105,10 +105,10 @@ export function SceneCanvas() {
 
       // ─── Color sets ───────────────────────────────────────────────────
       const COLOR_SETS = [
-        { a: new (THREE as any).Color(0x050510), b: new (THREE as any).Color(0x1a33ff), roughness: 0.20, metalness: 0.90 },
-        { a: new (THREE as any).Color(0x020208), b: new (THREE as any).Color(0x0a1aee), roughness: 0.15, metalness: 0.95 },
-        { a: new (THREE as any).Color(0x08091a), b: new (THREE as any).Color(0x3355ff), roughness: 0.25, metalness: 0.85 },
-        { a: new (THREE as any).Color(0x030310), b: new (THREE as any).Color(0x0f22cc), roughness: 0.18, metalness: 0.92 },
+        { a: new (THREE as any).Color(0x050a05), b: new (THREE as any).Color(0x00c076), roughness: 0.20, metalness: 0.90 },
+        { a: new (THREE as any).Color(0x020502), b: new (THREE as any).Color(0x009a5e), roughness: 0.15, metalness: 0.95 },
+        { a: new (THREE as any).Color(0x050a05), b: new (THREE as any).Color(0x16c784), roughness: 0.25, metalness: 0.85 },
+        { a: new (THREE as any).Color(0x030803), b: new (THREE as any).Color(0x00a866), roughness: 0.18, metalness: 0.92 },
       ]
 
       // ─── Mouse ────────────────────────────────────────────────────────

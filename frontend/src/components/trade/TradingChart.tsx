@@ -55,12 +55,12 @@ export function TradingChart({ token }: TradingChartProps) {
     })
 
     const series = chart.addCandlestickSeries({
-      upColor: '#2D60FF',
-      downColor: '#1A1A1A',
-      borderUpColor: '#2D60FF',
-      borderDownColor: '#333',
-      wickUpColor: '#2D60FF',
-      wickDownColor: '#333',
+      upColor: '#00C076',
+      downColor: '#FF3B3B',
+      borderUpColor: '#00C076',
+      borderDownColor: '#FF3B3B',
+      wickUpColor: '#00C076',
+      wickDownColor: '#FF3B3B',
     })
 
     chartRef.current = chart
@@ -138,7 +138,7 @@ export function TradingChart({ token }: TradingChartProps) {
         {(!candles || candles.length === 0) && (
           <div className="absolute inset-0 flex items-center justify-center text-[#333] text-sm">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-6 h-6 border-2 border-[#111] border-t-[#2D60FF] rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#111] border-t-[#00C076] rounded-full animate-spin" />
               <span className="font-bold tracking-tight">LOADING CHART...</span>
             </div>
           </div>

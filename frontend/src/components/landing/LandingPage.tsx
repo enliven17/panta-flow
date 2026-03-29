@@ -16,10 +16,10 @@ const SceneCanvas = dynamic(
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const BG_COLORS = [
-  { r: 2,  g: 2,  b: 8  },  // deep black-blue
-  { r: 1,  g: 1,  b: 4  },  // near black
-  { r: 3,  g: 4,  b: 10 },  // dark blue tint
-  { r: 1,  g: 2,  b: 6  },  // very dark navy
+  { r: 2,  g: 6,  b: 3  },  // deep black-green
+  { r: 1,  g: 3,  b: 2  },  // near black
+  { r: 2,  g: 7,  b: 4  },  // dark green tint
+  { r: 1,  g: 4,  b: 2  },  // very dark green
 ] as const
 
 function lerpColor(
@@ -195,9 +195,9 @@ export function LandingPage() {
 
           <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-8">
             <ClipRevealLine text="Perpetual" index={0} />
-            <span className="block text-[#3355ff]">
+            <span className="block text-[#00C076]">
               {typedWord}
-              <span className="inline-block w-[3px] h-[0.85em] bg-[#3355ff] ml-1 align-middle animate-pulse" />
+              <span className="inline-block w-[3px] h-[0.85em] bg-[#00C076] ml-1 align-middle animate-pulse" />
             </span>
           </h1>
 
@@ -213,7 +213,7 @@ export function LandingPage() {
               <Link
                 href="/trade"
                 className="group relative h-12 px-8 flex items-center gap-2.5 rounded-xl overflow-hidden font-black text-sm uppercase tracking-wider transition-all active:scale-[0.97]"
-                style={{ background: 'linear-gradient(135deg, #1a33ff 0%, #3a56ff 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #00C076 0%, #00E090 100%)' }}
               >
                 {/* Shine sweep on hover */}
                 <span

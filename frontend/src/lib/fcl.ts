@@ -24,27 +24,33 @@ import MockUSDC from 0xPANTA
 import PANTAToken from 0xPANTA
 
 transaction {
-    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability) &Account) {
+    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, UnpublishCapability) &Account) {
+        // ── MockUSDC ──
         if signer.storage.borrow<&MockUSDC.Vault>(from: MockUSDC.VaultStoragePath) == nil {
             signer.storage.save(
                 <- MockUSDC.createEmptyVault(vaultType: Type<@MockUSDC.Vault>()),
                 to: MockUSDC.VaultStoragePath
             )
-            signer.capabilities.publish(
-                signer.capabilities.storage.issue<&{FungibleToken.Receiver}>(MockUSDC.VaultStoragePath),
-                at: MockUSDC.VaultPublicPath
-            )
         }
+        // Issue full-type capability so both Receiver and Balance can be borrowed
+        signer.capabilities.unpublish(MockUSDC.VaultPublicPath)
+        signer.capabilities.publish(
+            signer.capabilities.storage.issue<&MockUSDC.Vault>(MockUSDC.VaultStoragePath),
+            at: MockUSDC.VaultPublicPath
+        )
+
+        // ── PANTAToken ──
         if signer.storage.borrow<&PANTAToken.Vault>(from: PANTAToken.VaultStoragePath) == nil {
             signer.storage.save(
                 <- PANTAToken.createEmptyVault(vaultType: Type<@PANTAToken.Vault>()),
                 to: PANTAToken.VaultStoragePath
             )
-            signer.capabilities.publish(
-                signer.capabilities.storage.issue<&{FungibleToken.Receiver}>(PANTAToken.VaultStoragePath),
-                at: PANTAToken.VaultPublicPath
-            )
         }
+        signer.capabilities.unpublish(PANTAToken.VaultPublicPath)
+        signer.capabilities.publish(
+            signer.capabilities.storage.issue<&PANTAToken.Vault>(PANTAToken.VaultStoragePath),
+            at: PANTAToken.VaultPublicPath
+        )
     }
 }
 `
@@ -72,6 +78,26 @@ export async function getUSDCBalance(address: string): Promise<number> {
         access(all) fun main(addr: Address): UFix64 {
           let vault = getAccount(addr)
             .capabilities.borrow<&{FungibleToken.Balance}>(MockUSDC.VaultPublicPath)
+          return vault?.balance ?? 0.0
+        }
+      `,
+      args: (arg: any, t: any) => [arg(address, t.Address)],
+    })
+    return parseFloat(result as string)
+  } catch {
+    return 0
+  }
+}
+
+export async function getFlowBalance(address: string): Promise<number> {
+  try {
+    const result = await fcl.query({
+      cadence: `
+        import FungibleToken from 0xFungibleToken
+        import FlowToken from 0xFlowToken
+        access(all) fun main(addr: Address): UFix64 {
+          let vault = getAccount(addr)
+            .capabilities.borrow<&{FungibleToken.Balance}>(/public/flowTokenBalance)
           return vault?.balance ?? 0.0
         }
       `,

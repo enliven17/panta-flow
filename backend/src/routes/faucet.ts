@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { sendTx, fcl } from "../services/flowTxService"
+import { sendTx, fcl, PANTA } from "../services/flowTxService"
 import { readFileSync } from "fs"
 import { join } from "path"
 
@@ -21,9 +21,8 @@ router.post("/faucet/claim", async (req, res) => {
 
   try {
     const cadence = loadTx("faucet/claimUSDCForRecipient.cdc")
-    const t = (fcl as any).t
     const txId = await sendTx(cadence, [
-      { value: address, type: (tt: any) => tt.Address },
+      { value: address, type: (t: any) => t.Address },
     ])
     res.json({ success: true, txId, amount: 1000 })
   } catch (err: any) {
@@ -34,8 +33,8 @@ router.post("/faucet/claim", async (req, res) => {
     if (msg.includes("Insufficient faucet reserve")) {
       return res.status(503).json({ error: "Faucet reserve empty. Contact admin." })
     }
-    if (msg.includes("no MockUSDC vault")) {
-      return res.status(400).json({ error: "Account not set up. Sign the setupAccount transaction first." })
+    if (msg.includes("no MockUSDC vault") || msg.includes("Recipient has no MockUSDC vault")) {
+      return res.status(400).json({ error: "needsSetup" })
     }
     console.error("[faucet] claim error:", err)
     res.status(500).json({ error: msg })
@@ -45,11 +44,14 @@ router.post("/faucet/claim", async (req, res) => {
 // GET /api/faucet/status?address=0x...
 router.get("/faucet/status", async (req, res) => {
   const { address } = req.query
-  if (!address) return res.status(400).json({ error: "address required" })
+  if (!address || typeof address !== "string") {
+    return res.status(400).json({ error: "address required" })
+  }
 
   try {
-    const script = `
-      import MockUSDCFaucet from 0xPANTA
+    // Check cooldown and reserve
+    const faucetScript = `
+      import MockUSDCFaucet from ${PANTA}
       access(all) fun main(account: Address): {String: UFix64} {
         return {
           "canClaim": MockUSDCFaucet.canClaim(account: account) ? 1.0 : 0.0,
@@ -58,12 +60,58 @@ router.get("/faucet/status", async (req, res) => {
         }
       }
     `
-    const result = await (fcl as any).query({
-      cadence: script.replaceAll("0xPANTA", `0x${process.env.FLOW_DEPLOYER_ADDRESS?.replace("0x","")}`),
-      args: (arg: any, t: any) => [arg(address, t.Address)],
+
+    // Check if user has a MockUSDC vault
+    const vaultScript = `
+      import FungibleToken from 0x9a0766d93b6608b7
+      import MockUSDC from ${PANTA}
+      access(all) fun main(account: Address): Bool {
+        return getAccount(account)
+          .capabilities.borrow<&{FungibleToken.Balance}>(MockUSDC.VaultPublicPath) != nil
+      }
+    `
+
+    const [faucetResult, hasVault] = await Promise.all([
+      (fcl as any).query({
+        cadence: faucetScript,
+        args: (arg: any, t: any) => [arg(address, t.Address)],
+      }),
+      (fcl as any).query({
+        cadence: vaultScript,
+        args: (arg: any, t: any) => [arg(address, t.Address)],
+      }),
+    ])
+
+    const canClaim = parseFloat(faucetResult?.canClaim ?? "0") >= 1.0
+    const cooldownRemaining = parseFloat(faucetResult?.cooldownRemaining ?? "0")
+
+    res.json({
+      onCooldown: !canClaim,
+      secondsUntilClaim: Math.ceil(cooldownRemaining),
+      needsSetup: !hasVault,
+      reserveBalance: parseFloat(faucetResult?.reserveBalance ?? "0"),
     })
-    res.json(result)
   } catch (err: any) {
+    res.status(500).json({ error: err?.message })
+  }
+})
+
+// POST /api/faucet/refill  (deployer-only, secured by env secret)
+router.post("/faucet/refill", async (req, res) => {
+  const { secret, amount } = req.body
+  if (secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: "Forbidden" })
+  }
+  const refillAmount = typeof amount === "number" ? amount : 10_000_000
+
+  try {
+    const cadence = loadTx("admin/refillFaucet.cdc")
+    const txId = await sendTx(cadence, [
+      { value: refillAmount.toFixed(8), type: (t: any) => t.UFix64 },
+    ])
+    res.json({ success: true, txId, amount: refillAmount })
+  } catch (err: any) {
+    console.error("[faucet] refill error:", err)
     res.status(500).json({ error: err?.message })
   }
 })

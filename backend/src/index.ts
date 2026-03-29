@@ -1,3 +1,4 @@
+import "dotenv/config"
 import express from "express"
 import cors from "cors"
 import healthRouter from "./routes/health"
@@ -32,8 +33,8 @@ app.use("/api", stakingRouter)
 app.listen(PORT, () => {
   console.log(`[panta-backend] running on port ${PORT}`)
 
-  // Pyth price polling — 1s
-  startPythPolling()
+  // Pyth price polling — 1s (seeds 500 historical candles from Binance first)
+  startPythPolling().catch(err => console.error("[panta-backend] startPythPolling failed:", err))
 
   // On-chain PriceFeed keeper — 30s
   startPriceKeeper()

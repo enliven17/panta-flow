@@ -1,8 +1,10 @@
 /// Pyth Hermes real-time price service
 /// Polls BTC/USD, ETH/USD, FLOW/USD every 1 second
 /// Hermes REST API: https://hermes.pyth.network/v2/updates/price/latest
+/// Historical candles seeded from Binance on startup
 
 const HERMES_URL = "https://hermes.pyth.network/v2/updates/price/latest"
+
 
 // Pyth price feed IDs
 const PRICE_IDS: Record<string, string> = {
@@ -30,6 +32,21 @@ const INTERVAL_SECONDS: Record<Interval, number> = {
   "1d": 86400,
 }
 const MAX_CANDLES = 500
+
+const BINANCE_SYMBOLS: Record<string, string> = {
+  BTC: "BTCUSDT",
+  ETH: "ETHUSDT",
+  FLOW: "FLOWUSDT",
+}
+
+const BINANCE_INTERVAL_MAP: Record<Interval, string> = {
+  "1m": "1m",
+  "5m": "5m",
+  "15m": "15m",
+  "1h": "1h",
+  "4h": "4h",
+  "1d": "1d",
+}
 
 interface TokenState {
   price: number
@@ -128,7 +145,46 @@ export function getPriceHistory(token: string, interval: Interval, limit: number
   return all.slice(-limit)
 }
 
-export function startPythPolling(): void {
+async function fetchBinanceCandles(symbol: string, interval: string, limit: number): Promise<OHLCVCandle[]> {
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Binance HTTP ${res.status}`)
+  const data = await res.json() as Array<[number, string, string, string, string, string]>
+  return data.map(k => ({
+    time: Math.floor(k[0] / 1000),
+    open: parseFloat(k[1]),
+    high: parseFloat(k[2]),
+    low: parseFloat(k[3]),
+    close: parseFloat(k[4]),
+    volume: parseFloat(k[5]),
+  }))
+}
+
+async function seedHistoricalData(): Promise<void> {
+  const tasks: Promise<void>[] = []
+  for (const [token, symbol] of Object.entries(BINANCE_SYMBOLS)) {
+    for (const iv of Object.keys(BINANCE_INTERVAL_MAP) as Interval[]) {
+      tasks.push(
+        fetchBinanceCandles(symbol, BINANCE_INTERVAL_MAP[iv], MAX_CANDLES)
+          .then(candles => {
+            if (candles.length === 0) return
+            // All but the last (still-open) candle → closed list
+            state[token].candles[iv] = candles.slice(0, -1)
+            // Last candle → current open candle
+            state[token].current[iv] = { ...candles[candles.length - 1] }
+          })
+          .catch(err => {
+            console.error(`[pythPriceService] Seed failed ${token}/${iv}:`, err)
+          })
+      )
+    }
+  }
+  await Promise.all(tasks)
+  console.log("[pythPriceService] Historical candles seeded from Binance")
+}
+
+export async function startPythPolling(): Promise<void> {
+  await seedHistoricalData()
   pollPythPrices()
   setInterval(pollPythPrices, 1_000)
 }
