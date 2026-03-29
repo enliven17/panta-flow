@@ -38,7 +38,7 @@ export function IntroScreen({ onComplete }: Props) {
       {/* ── Top curtain ─────────────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-x-0 top-0 bg-[#050505]"
-        style={{ height: '50.5vh' }}           // slight overlap, no seam
+        style={{ height: '50.5vh', willChange: 'transform' }}           // slight overlap, no seam
         animate={isExiting ? { y: '-100%' } : { y: 0 }}
         transition={{ duration: 0.9, ease: EASE, delay: 0.05 }}
       />
@@ -46,7 +46,7 @@ export function IntroScreen({ onComplete }: Props) {
       {/* ── Bottom curtain ──────────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-x-0 bottom-0 bg-[#050505]"
-        style={{ height: '50.5vh' }}
+        style={{ height: '50.5vh', willChange: 'transform' }}
         animate={isExiting ? { y: '100%' } : { y: 0 }}
         transition={{ duration: 0.9, ease: EASE, delay: 0.05 }}
       />
@@ -55,7 +55,7 @@ export function IntroScreen({ onComplete }: Props) {
       <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
         <motion.div
           className="flex items-center"
-          style={{ gap: 'clamp(10px, 2.5vw, 36px)' }}
+          style={{ gap: 'clamp(10px, 2.5vw, 36px)', willChange: 'transform, opacity' }}
           animate={isExiting ? { y: 60, opacity: 0 } : { y: 0, opacity: 1 }}
           transition={{ duration: 0.55, ease: EASE }}
         >

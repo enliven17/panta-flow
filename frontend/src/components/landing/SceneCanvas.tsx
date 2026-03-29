@@ -17,6 +17,10 @@ export function SceneCanvas() {
     }
 
     ;(async () => {
+      // Delay init to let IntroScreen pop letters without jank
+      await new Promise(r => setTimeout(r, 600))
+      if (!_alive) return
+
       const THREE = await import('three/webgpu')
       const {
         color, positionWorld, positionLocal, normalLocal, tangentLocal,
@@ -155,7 +159,6 @@ export function SceneCanvas() {
         mat.metalness = ca.metalness + (cb.metalness - ca.metalness) * smooth
 
         _r.render(scene, camera)
-        await _r.resolveTimestampsAsync('render')
       })
     })().catch(console.error)
 

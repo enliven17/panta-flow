@@ -148,7 +148,14 @@ export function Sidebar({ animateIn = false }: { animateIn?: boolean }) {
     >
       <div className="mb-4">
         <Link href="/">
-          <img src="/logo.svg" alt="Panta" width={36} height={36} />
+          <motion.img
+            src="/logo.svg"
+            alt="Panta"
+            width={36}
+            height={36}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 18, ease: 'linear', repeat: Infinity }}
+          />
         </Link>
       </div>
 

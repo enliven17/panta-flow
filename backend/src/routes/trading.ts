@@ -136,8 +136,8 @@ router.get("/trade/positions", async (req, res) => {
         for token in tokens {
           let longKey  = PositionManager.getPositionKey(account: account, collateralToken: "USDC", indexToken: token, isLong: true)
           let shortKey = PositionManager.getPositionKey(account: account, collateralToken: "USDC", indexToken: token, isLong: false)
-          results.append(PositionManager.positions[longKey])
-          results.append(PositionManager.positions[shortKey])
+          results.append(PositionManager.getPosition(positionKey: longKey))
+          results.append(PositionManager.getPosition(positionKey: shortKey))
         }
         return results
       }
@@ -149,7 +149,8 @@ router.get("/trade/positions", async (req, res) => {
     })
     res.json(result)
   } catch (err: any) {
-    res.status(500).json({ error: err?.message })
+    console.error("[trading] getPositions error:", err)
+    res.status(500).json({ error: err?.message || String(err) })
   }
 })
 

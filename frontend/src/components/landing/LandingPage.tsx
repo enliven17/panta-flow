@@ -1,20 +1,14 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { CYCLE_PERIOD } from './SceneCanvas'
-
-const SceneCanvas = dynamic(
-  () => import('./SceneCanvas').then((m) => ({ default: m.SceneCanvas })),
-  { ssr: false }
-)
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Background color sets — must stay in sync with SceneCanvas COLOR_SETS
  * ──────────────────────────────────────────────────────────────────────────── */
 
+const CYCLE_PERIOD = 6 // seconds
 const BG_COLORS = [
   { r: 2,  g: 6,  b: 3  },  // deep black-green
   { r: 1,  g: 3,  b: 2  },  // near black
@@ -151,9 +145,6 @@ export function LandingPage() {
 
   return (
     <>
-      {/* ── Three.js Canvas (z-5, behind content) ───────────────────── */}
-      <SceneCanvas />
-
       {/* ── Animated Background (z-0) ───────────────────────────────── */}
       <div
         ref={bgRef}
