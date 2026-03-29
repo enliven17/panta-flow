@@ -485,6 +485,57 @@ access(all) contract PositionManager {
         return remainingCollateral < threshold
     }
 
+    /// Add collateral to an existing position without increasing size (reduces leverage).
+    ///
+    /// - account:        trader address
+    /// - collateralToken: token used as collateral ("USDC")
+    /// - indexToken:     token being traded
+    /// - collateralDelta: additional collateral to add (USD)
+    /// - isLong:         true for long, false for short
+    access(all) fun addCollateral(
+        account: Address,
+        collateralToken: String,
+        indexToken: String,
+        collateralDelta: UFix64,
+        isLong: Bool
+    ) {
+        assert(collateralDelta > 0.0, message: "collateralDelta must be > 0")
+
+        let key = PositionManager.getPositionKey(
+            account: account,
+            collateralToken: collateralToken,
+            indexToken: indexToken,
+            isLong: isLong
+        )
+
+        let position = PositionManager.positions[key] ?? panic("Position not found")
+        let newCollateral = position.collateral + collateralDelta
+
+        // Cannot add collateral beyond position size (leverage >= 1x)
+        assert(position.size >= newCollateral, message: "Collateral cannot exceed position size")
+
+        PositionManager.positions[key] = Position(
+            size: position.size,
+            collateral: newCollateral,
+            averagePrice: position.averagePrice,
+            entryFundingRate: position.entryFundingRate,
+            isLong: isLong,
+            lastIncreasedTime: position.lastIncreasedTime
+        )
+
+        emit PositionIncreased(
+            account: account,
+            collateralToken: collateralToken,
+            indexToken: indexToken,
+            isLong: isLong,
+            sizeDelta: 0.0,
+            collateralDelta: collateralDelta,
+            averagePrice: position.averagePrice,
+            newSize: position.size,
+            newCollateral: newCollateral
+        )
+    }
+
     /// Returns the Position for a given key, or nil if not found.
     access(all) view fun getPosition(positionKey: String): Position? {
         return PositionManager.positions[positionKey]

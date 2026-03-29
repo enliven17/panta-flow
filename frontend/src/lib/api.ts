@@ -80,5 +80,7 @@ export const getStakingInfo = (account: string) =>
 
 export const getStats = () => get("/stats")
 
-export const getTradeHistory = (account: string) =>
+export const getTradeHistory = () => get("/trades")
+
+export const getTradeHistoryForAccount = (account: string) =>
   get("/trades", { account })

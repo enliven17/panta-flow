@@ -9,11 +9,11 @@ import { MarketSelector } from '@/components/trade/MarketSelector'
 import { PositionsTable } from '@/components/trade/PositionsTable'
 import { OrdersTable } from '@/components/trade/OrdersTable'
 import { TradeHistory } from '@/components/trade/TradeHistory'
+import { OrderBook } from '@/components/trade/OrderBook'
 import { usePrices } from '@/hooks/usePrices'
-import { formatPrice } from '@/lib/utils/format'
 import { getTokenImage } from '@/lib/tokenImages'
 
-type Tab = 'positions' | 'orders' | 'history'
+type Tab = 'positions' | 'orders' | 'history' | 'orderbook'
 
 const TOKEN_COLORS: Record<string, string> = {
   BTC: '#FF9900',
@@ -114,7 +114,7 @@ export default function TradePage() {
                 {/* Positions/Orders/History tabs */}
                 <div className="bg-[#0E0E0E] rounded-2xl border border-[#1A1A1A] overflow-hidden">
                   <div className="flex border-b border-[#1A1A1A] px-2">
-                    {(['positions', 'orders', 'history'] as Tab[]).map((t) => (
+                    {(['positions', 'orders', 'history', 'orderbook'] as Tab[]).map((t) => (
                       <button
                         key={t}
                         onClick={() => setTab(t)}
@@ -138,12 +138,13 @@ export default function TradePage() {
                     {tab === 'positions' && <PositionsTable />}
                     {tab === 'orders' && <OrdersTable />}
                     {tab === 'history' && <TradeHistory />}
+                    {tab === 'orderbook' && <OrderBook token={selectedToken} />}
                   </div>
                 </div>
               </motion.div>
 
               {/* Right: order panel */}
-              <motion.div variants={fromRight} className="w-[380px] shrink-0 ml-4 border border-[#1A1A1A] rounded-2xl bg-[#0E0E0E] overflow-y-auto">
+              <motion.div variants={fromRight} className="w-[380px] shrink-0 ml-4 border border-[#1A1A1A] rounded-2xl bg-[#0E0E0E] overflow-hidden">
                 <div className="p-6">
                   <OrderPanel market={selectedToken as 'ETH' | 'BTC' | 'FLOW'} />
                 </div>

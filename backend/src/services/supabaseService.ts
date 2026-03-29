@@ -96,6 +96,45 @@ export async function getTradesForAccount(account: string, limit = 50) {
   return data || []
 }
 
+export async function getAllTrades(limit = 100) {
+  if (!isSupabaseConfigured()) return []
+  const { data } = await getSupabase()
+    .from("trades")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
+export async function setSLTP(
+  account: string,
+  collateralToken: string,
+  indexToken: string,
+  isLong: boolean,
+  stopLoss: number | null,
+  takeProfit: number | null
+) {
+  if (!isSupabaseConfigured()) return
+  await getSupabase()
+    .from("positions")
+    .update({
+      stop_loss: stopLoss,
+      take_profit: takeProfit,
+      updated_at: new Date().toISOString(),
+    })
+    .match({ account, collateral_token: collateralToken, index_token: indexToken, is_long: isLong })
+}
+
+export async function getPositionsWithActiveSLTP() {
+  if (!isSupabaseConfigured()) return []
+  const { data } = await getSupabase()
+    .from("positions")
+    .select("*")
+    .eq("status", "open")
+    .or("stop_loss.not.is.null,take_profit.not.is.null")
+  return data || []
+}
+
 // ---- Leaderboard ----
 
 export async function getLeaderboard(limit = 20) {

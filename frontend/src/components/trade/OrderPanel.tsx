@@ -1,11 +1,14 @@
 'use client'
 
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { useTradeForm, Direction, TxStatus } from '@/hooks/useTradeForm'
+import { useLimitOrder } from '@/hooks/useLimitOrder'
 import { usePrices } from '@/hooks/usePrices'
 
 type Market = 'ETH' | 'BTC' | 'FLOW'
+type OrderType = 'market' | 'limit'
 
 interface OrderPanelProps {
   market: Market
@@ -29,7 +32,7 @@ function validateLeverage(leverage: number): { isValid: boolean; error?: string 
   return { isValid: true }
 }
 
-function TxStatusBadge({ status, txId }: { status: TxStatus; txId: string | null }) {
+function TxStatusBadge({ status, txId }: { status: TxStatus | 'idle' | 'pending' | 'sealed' | 'error'; txId?: string | null }) {
   if (status === 'idle') return null
 
   const configs = {
@@ -37,7 +40,8 @@ function TxStatusBadge({ status, txId }: { status: TxStatus; txId: string | null
     sealed:  { label: 'Transaction confirmed', color: 'text-[#00C076]', bg: 'bg-[#00C076]/10 border-[#00C076]/20' },
     error:   { label: 'Transaction failed', color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/20' },
   }
-  const cfg = configs[status]
+  const cfg = configs[status as keyof typeof configs]
+  if (!cfg) return null
 
   return (
     <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[12px] font-bold ${cfg.bg}`}>
@@ -54,10 +58,24 @@ function TxStatusBadge({ status, txId }: { status: TxStatus; txId: string | null
   )
 }
 
+// Flow blockchain icon SVG
+function FlowIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="20" fill="#00EF8B"/>
+      <path d="M26.5 11H17.5C14.46 11 12 13.46 12 16.5C12 19.54 14.46 22 17.5 22H20V26.5C20 27.88 21.12 29 22.5 29C23.88 29 25 27.88 25 26.5V22H26.5C29.54 22 32 19.54 32 16.5C32 13.46 29.54 11 26.5 11ZM22.5 19H17.5C16.12 19 15 17.88 15 16.5C15 15.12 16.12 14 17.5 14H26.5C27.88 14 29 15.12 29 16.5C29 17.88 27.88 19 26.5 19H22.5Z" fill="white"/>
+    </svg>
+  )
+}
+
 export function OrderPanel({ market }: OrderPanelProps) {
   const { user, isConnected, connect } = useFlowNetwork()
   const { data: prices } = usePrices()
   const form = useTradeForm(market)
+  const limitOrder = useLimitOrder()
+
+  const [orderType, setOrderType] = useState<OrderType>('market')
+  const [limitPrice, setLimitPrice] = useState('')
 
   const sliderTrackRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
@@ -81,17 +99,37 @@ export function OrderPanel({ market }: OrderPanelProps) {
 
   const leverageValidation = validateLeverage(form.leverage)
   const collateralNum = parseFloat(form.collateral) || 0
+  const limitPriceNum = parseFloat(limitPrice) || 0
   const positionSizeUsd = collateralNum * form.leverage
-  const liqPrice = collateralNum > 0 && currentPrice > 0
-    ? calcLiqPrice(currentPrice, form.leverage, form.direction === 'long')
+  const effectivePrice = orderType === 'limit' && limitPriceNum > 0 ? limitPriceNum : currentPrice
+  const liqPrice = collateralNum > 0 && effectivePrice > 0
+    ? calcLiqPrice(effectivePrice, form.leverage, form.direction === 'long')
     : null
 
-  function handleOpenPosition() {
-    if (!form.isValid || !user.addr) return
-    form.submit()
+  function handleSubmit() {
+    if (!user.addr) return
+    if (orderType === 'market') {
+      if (!form.isValid) return
+      form.submit()
+    } else {
+      if (!form.isValid || limitPriceNum <= 0) return
+      limitOrder.createLimitOrder({
+        indexToken: market,
+        collateralAmount: collateralNum,
+        sizeDelta: positionSizeUsd,
+        isLong: form.direction === 'long',
+        limitPrice: limitPriceNum,
+      })
+    }
   }
 
-  const isDisabled = !form.isValid || form.isSubmitting || !leverageValidation.isValid || form.txStatus === 'pending'
+  const limitIsReady = orderType === 'limit' && form.isValid && limitPriceNum > 0 && leverageValidation.isValid
+  const isDisabled = orderType === 'market'
+    ? (!form.isValid || form.isSubmitting || !leverageValidation.isValid || form.txStatus === 'pending')
+    : (!limitIsReady || limitOrder.isPending)
+
+  const txStatus = orderType === 'market' ? form.txStatus : limitOrder.status
+  const txId = orderType === 'market' ? form.txId : null
 
   return (
     <div className="flex flex-col gap-3">
@@ -112,21 +150,82 @@ export function OrderPanel({ market }: OrderPanelProps) {
         ))}
       </div>
 
-      {/* Market price */}
+      {/* Order type + price row */}
       <div className="flex gap-2">
         <div className="flex-1 p-4 rounded-2xl bg-[#1A1A1A] border border-[#222]">
-          <span className="block text-[12px] text-[#555] font-medium mb-1">Market price</span>
+          <span className="block text-[12px] text-[#555] font-medium mb-1">
+            {orderType === 'limit' ? 'Limit price' : 'Market price'}
+          </span>
           <span className="block text-[15px] text-white font-bold tabular-nums">
             {currentPrice > 0
               ? `$${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : '—'}
           </span>
         </div>
-        <div className="flex-1 p-4 rounded-2xl bg-[#1A1A1A] border border-[#222]">
-          <span className="block text-[12px] text-[#555] font-medium mb-1">Order type</span>
-          <span className="block text-[15px] text-white font-bold">Market</span>
+        {/* Market / Limit toggle */}
+        <div className="flex flex-col justify-center p-1 rounded-2xl bg-[#080808] border border-[#111] gap-1">
+          {(['market', 'limit'] as OrderType[]).map((ot) => (
+            <button
+              key={ot}
+              onClick={() => setOrderType(ot)}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded-xl transition-all ${
+                orderType === ot
+                  ? 'bg-[#1A1A1A] text-white border border-[#222]'
+                  : 'text-[#444] hover:text-[#666]'
+              }`}
+            >
+              {ot.charAt(0).toUpperCase() + ot.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Limit price input (only when limit order) */}
+      <AnimatePresence initial={false}>
+        {orderType === 'limit' && (
+          <motion.div
+            key="limit-price-box"
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="px-4 py-3 rounded-2xl bg-[#1A1A1A] border border-[#222]">
+              <span className="block text-[11px] text-[#555] font-medium mb-1">
+                Limit Price
+                <span className="ml-1.5 text-[10px] text-[#444]">
+                  {form.direction === 'long' ? '↓ ≤ trigger' : '↑ ≥ trigger'}
+                </span>
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] text-[#555] font-bold">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={limitPrice}
+                  onChange={(e) => setLimitPrice(e.target.value)}
+                  placeholder={currentPrice > 0 ? currentPrice.toFixed(2) : '0.00'}
+                  className="flex-1 bg-transparent text-[16px] font-bold text-white outline-none placeholder:text-[#333] tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              {limitPriceNum > 0 && currentPrice > 0 && (
+                <div className="mt-1.5 text-[10px]">
+                  {form.direction === 'long'
+                    ? limitPriceNum < currentPrice
+                      ? <span className="text-[#00C076]">✓ {((currentPrice - limitPriceNum) / currentPrice * 100).toFixed(1)}% below market</span>
+                      : <span className="text-yellow-500">⚠ Above market — immediate execution</span>
+                    : limitPriceNum > currentPrice
+                      ? <span className="text-[#00C076]">✓ {((limitPriceNum - currentPrice) / currentPrice * 100).toFixed(1)}% above market</span>
+                      : <span className="text-yellow-500">⚠ Below market — immediate execution</span>
+                  }
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Collateral / Size */}
       <div className="relative rounded-2xl bg-[#1A1A1A] border border-[#222] overflow-hidden">
@@ -155,9 +254,9 @@ export function OrderPanel({ market }: OrderPanelProps) {
         <div className="p-6">
           <span className="block text-[12px] text-[#555] font-medium mb-1">Estimated size</span>
           <div className="flex items-center justify-between">
-            <span className={`flex-1 text-3xl font-bold tabular-nums ${form.sizeUsd > 0 && currentPrice > 0 ? 'text-white' : 'text-[#333]'}`}>
-              {form.sizeUsd > 0 && currentPrice > 0
-                ? (form.sizeUsd / currentPrice).toFixed(MARKET_DECIMALS[market])
+            <span className={`flex-1 text-3xl font-bold tabular-nums ${form.sizeUsd > 0 && effectivePrice > 0 ? 'text-white' : 'text-[#333]'}`}>
+              {form.sizeUsd > 0 && effectivePrice > 0
+                ? (form.sizeUsd / effectivePrice).toFixed(MARKET_DECIMALS[market])
                 : '0.' + '0'.repeat(MARKET_DECIMALS[market])}
             </span>
             <span className="text-[14px] font-bold text-[#555] ml-4">{market}</span>
@@ -220,10 +319,18 @@ export function OrderPanel({ market }: OrderPanelProps) {
             {liqPrice !== null ? `$${liqPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#555] font-bold">Slippage:</span>
-          <span className="text-[12px] text-[#AAA] font-bold">0.5%</span>
-        </div>
+        {orderType === 'limit' && (
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] text-[#555] font-bold">Execution:</span>
+            <span className="text-[12px] text-[#AAA] font-bold">Keeper-triggered</span>
+          </div>
+        )}
+        {orderType === 'market' && (
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] text-[#555] font-bold">Slippage:</span>
+            <span className="text-[12px] text-[#AAA] font-bold">0.5%</span>
+          </div>
+        )}
       </div>
 
       {!leverageValidation.isValid && (
@@ -236,7 +343,11 @@ export function OrderPanel({ market }: OrderPanelProps) {
         </span>
       )}
 
-      <TxStatusBadge status={form.txStatus} txId={form.txId} />
+      {limitOrder.txError && limitOrder.status === 'error' && (
+        <span className="text-[11px] text-red-400 font-bold px-1">{limitOrder.txError}</span>
+      )}
+
+      <TxStatusBadge status={txStatus} txId={txId} />
 
       {!isConnected ? (
         <button
@@ -247,15 +358,21 @@ export function OrderPanel({ market }: OrderPanelProps) {
         </button>
       ) : (
         <button
-          onClick={handleOpenPosition}
+          onClick={handleSubmit}
           disabled={isDisabled}
-          className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#00C076] to-[#00E090] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)] active:scale-[0.98] transition-all disabled:opacity-30 disabled:pointer-events-none"
+          className={`mt-2 w-full h-[64px] rounded-2xl text-[16px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none ${
+            form.direction === 'long'
+              ? 'bg-gradient-to-r from-[#00C076] to-[#00E090] shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)]'
+              : 'bg-gradient-to-r from-[#FF4466] to-[#FF6688] shadow-[0_8px_20px_rgba(255,68,102,0.3)] hover:shadow-[0_12px_28px_rgba(255,68,102,0.45)]'
+          }`}
         >
-          {form.txStatus === 'pending' ? (
+          {(form.txStatus === 'pending' || limitOrder.isPending) ? (
             <div className="flex items-center justify-center gap-3">
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               <span>Confirm in wallet…</span>
             </div>
+          ) : orderType === 'limit' ? (
+            `Place Limit ${form.direction.charAt(0).toUpperCase() + form.direction.slice(1)}`
           ) : (
             `Open ${form.direction.charAt(0).toUpperCase() + form.direction.slice(1)}`
           )}

@@ -140,7 +140,7 @@ All 9 contracts deployed at [`0xa6d1a763be01f1fa`](https://testnet.flowscan.io/a
 | Contract | Description |
 |---|---|
 | `Vault.cdc` | Core pool: AUM tracking, reserve management, fee collection |
-| `PositionManager.cdc` | Position lifecycle: open, increase, decrease, close, liquidate |
+| `PositionManager.cdc` | Position lifecycle: open, increase, decrease, close, liquidate, **addCollateral** |
 | `PriceFeed.cdc` | On-chain oracle cache, updated every 30s by backend keeper |
 | `PANTAToken.cdc` | Governance & staking token (FungibleToken v2) |
 | `PLPToken.cdc` | Liquidity provider token, whitelist-controlled transfers |
@@ -148,6 +148,41 @@ All 9 contracts deployed at [`0xa6d1a763be01f1fa`](https://testnet.flowscan.io/a
 | `StakingRewards.cdc` | Block-based reward accrual for PANTA and PLP stakers |
 | `MockUSDC.cdc` | Test USDC token (6 decimals, FungibleToken v2) |
 | `MockUSDCFaucet.cdc` | 1000 USDC / 8h cooldown per address |
+
+### PositionManager — addCollateral
+
+```cadence
+// Increases position collateral without changing size.
+// Constraint: size >= newCollateral (leverage must stay ≥ 1×)
+access(all) fun addCollateral(
+    account: Address,
+    collateralToken: String,
+    indexToken: String,
+    collateralDelta: UFix64,
+    isLong: Bool
+)
+```
+
+Emits `PositionIncreased` with `sizeDelta: 0.0` to distinguish a collateral-top-up from a full size increase.
+
+### TradingRouter — addCollateral
+
+The `TradingRouter` contract wraps `PositionManager.addCollateral` with vault accounting:
+
+1. Accepts a `@MockUSDC.Vault` resource from the caller
+2. Deposits it into the protocol's USDC vault (`increaseReserve`)
+3. Calls `PositionManager.addCollateral` to update the position record
+
+```cadence
+access(all) fun addCollateral(
+    account: Address,
+    collateral: @MockUSDC.Vault,  // resource — moved, not copied
+    indexToken: String,
+    isLong: Bool
+)
+```
+
+The FCL transaction (`ADD_COLLATERAL_TX`) withdraws from the user's USDC vault, wraps it in the resource, and passes it to `TradingRouter.addCollateral`. The deployer account is **not** involved — this is one of the few user-signed transactions.
 
 ### Contract Interaction Map
 
@@ -177,13 +212,35 @@ Base URL: `http://localhost:3001/api`
 | GET | `/faucet/status` | Cooldown check `?address=` |
 | POST | `/trade/open` | Open perpetual position |
 | POST | `/trade/close` | Close/decrease position |
+| POST | `/trade/add-collateral` | Add collateral to existing position (reduces leverage) |
 | GET | `/trade/positions` | Active positions `?account=` |
+| GET | `/trades` | Trade history `?account=` |
+| POST | `/sltp` | Set Stop Loss / Take Profit for a position |
 | POST | `/panta/buy` | Buy PANTA with USDC (100 USDC = 1 PANTA) |
 | POST | `/staking/stake` | Stake PANTA or PLP |
 | POST | `/staking/unstake` | Unstake tokens |
 | POST | `/staking/claim` | Claim staking rewards |
 | GET | `/staking/info` | Staking balances & pending rewards `?account=` |
 | GET | `/stats` | Protocol TVL, volume, OI, PLP price/APR |
+
+### SL/TP Endpoint
+
+`POST /api/sltp` — stores stop-loss and take-profit price levels in Supabase. These are **off-chain triggers**: the backend's liquidation keeper (`priceKeeperService`) polls open positions with active SL/TP and auto-closes them when the live price crosses the target.
+
+```json
+// Request body
+{
+  "account": "0xabc123",
+  "indexToken": "BTC",
+  "isLong": true,
+  "stopLoss": 58000.00,
+  "takeProfit": 72000.00
+}
+```
+
+### Add Collateral Endpoint
+
+`POST /api/trade/add-collateral` — calls `PositionManager.addCollateral()` on-chain. Increases position collateral without changing size, effectively reducing leverage and raising the liquidation price. The constraint `size >= collateral` is enforced at the contract level.
 
 ### Transaction Signing Model
 
@@ -198,6 +255,8 @@ flowchart TD
 ```
 
 > **Why deployer-signs?** Flow requires a funded account for all transactions. Users only need a Flow wallet for `setupAccount` (creates USDC + PANTA vaults). The deployer holds all Admin resources and signs everything else, enabling a gasless UX.
+
+> **Exception — addCollateral:** This transaction is signed by the user via FCL because it moves a `@MockUSDC.Vault` resource directly from the user's account storage. The deployer cannot access user-owned resources.
 
 ---
 
@@ -214,15 +273,17 @@ Built with Next.js 15 (App Router) + Tailwind CSS + `@tanstack/react-query`
 
 **Key hooks:**
 
-| Hook | Source |
+| Hook | Description |
 |---|---|
 | `useFlowNetwork` | FCL wallet state (connect/disconnect) |
 | `useTradeForm` | Form state + `submit()` → POST /api/trade/open |
-| `usePositions` | Positions from backend, `useClosePosition` mutation |
+| `usePositions` | Active positions from backend, `useClosePosition` mutation |
 | `usePrices` | Live prices, 3s refetch |
 | `usePriceHistory` | OHLCV for TradingView chart |
 | `useFaucetStatus` | Cooldown state, `useClaimFaucet` mutation |
 | `useStakingInfo` | Staked amounts + pending rewards |
+| `useAddCollateral` | FCL mutation — calls `addCollateral` tx, invalidates positions query |
+| `useSetSLTP` | Sets stop-loss / take-profit via POST /api/sltp, invalidates positions query |
 
 ---
 
@@ -319,16 +380,6 @@ npm run dev          # starts on :3000
 ```bash
 cd flow-perpdex
 flow project deploy --network testnet
-```
-
----
-
-## Supabase Schema
-
-```sql
--- Run supabase/schema.sql in your Supabase SQL editor
--- Tables: positions, trades, price_history
--- View:   leaderboard (aggregated PnL per account)
 ```
 
 ---

@@ -17,6 +17,8 @@ import tradesRouter from "./routes/trades"
 import faucetRouter from "./routes/faucet"
 import tradingRouter from "./routes/trading"
 import stakingRouter from "./routes/staking"
+import sltpRouter from "./routes/sltp"
+import ordersRouter from "./routes/orders"
 import { startPythPolling } from "./services/pythPriceService"
 import { startPriceKeeper } from "./services/priceKeeperService"
 import { startStatsPolling } from "./services/statsService"
@@ -37,6 +39,8 @@ app.use("/api", tradesRouter)
 app.use("/api", faucetRouter)
 app.use("/api", tradingRouter)
 app.use("/api", stakingRouter)
+app.use("/api", sltpRouter)
+app.use("/api", ordersRouter)
 
 app.listen(PORT, () => {
   console.log(`[panta-backend] running on port ${PORT}`)
