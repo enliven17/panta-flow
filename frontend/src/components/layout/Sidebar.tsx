@@ -133,7 +133,7 @@ function WalletButton({ onConnectedClick }: { onConnectedClick: () => void }) {
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ animateIn = false }: { animateIn?: boolean }) {
   const pathname = usePathname()
 
   const { toggle } = useWalletDrawer()
@@ -141,7 +141,7 @@ export function Sidebar() {
   return (
     <motion.aside
       initial={{ x: -80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
+      animate={animateIn ? { x: 0, opacity: 1 } : { x: -80, opacity: 0 }}
       transition={{ duration: 0.6, ease: EASE }}
       className="fixed left-0 top-0 bottom-0 z-50 flex flex-col items-center py-6 gap-6 bg-[#080808] border-r border-[#151515]"
       style={{ width: 'var(--sidebar-width, 68px)' }}
