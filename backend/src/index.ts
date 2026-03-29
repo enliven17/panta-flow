@@ -1,3 +1,11 @@
+// Prevent unhandled rejections (network timeouts, etc.) from crashing the server
+process.on("uncaughtException", (err) => {
+  console.error("[panta-backend] Uncaught exception (kept alive):", err.message)
+})
+process.on("unhandledRejection", (reason) => {
+  console.error("[panta-backend] Unhandled rejection (kept alive):", reason)
+})
+
 import "dotenv/config"
 import express from "express"
 import cors from "cors"

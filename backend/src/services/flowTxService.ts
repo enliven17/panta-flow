@@ -15,7 +15,7 @@ const PANTA = `0x${DEPLOYER_ADDRESS}`
 // Configure FCL once
 fcl.config({
   "flow.network": "testnet",
-  "accessNode.api": "https://rest-testnet.onflow.org",
+  "accessNode.api": "https://access-testnet.onflow.org",
 })
 
 function hashMessage(hex: string): Buffer {

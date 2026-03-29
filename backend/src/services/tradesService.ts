@@ -17,11 +17,9 @@ export function getCachedTrades(): Trade[] {
 }
 
 export async function fetchRecentTrades(): Promise<void> {
-  // Flow event indexing not yet implemented
-  console.log('Flow event indexing not yet implemented')
+  // Flow event indexing not yet implemented — no-op
 }
 
 export function startTradesPolling(): void {
-  fetchRecentTrades()
-  setInterval(fetchRecentTrades, 15_000)
+  // No-op until Flow event indexing is implemented
 }
