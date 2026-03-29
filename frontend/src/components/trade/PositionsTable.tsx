@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { usePositions, useClosePosition, Position } from '@/hooks/usePositions'
+import { usePositions, Position } from '@/hooks/usePositions'
+import { useClosePosition } from '@/hooks/useClosePosition'
 import { usePrices } from '@/hooks/usePrices'
 import { TableSkeleton } from '@/components/shared/LoadingSkeleton'
 
@@ -22,7 +23,7 @@ function calcPnl(pos: Position, currentPrice: number): number {
 export function PositionsTable() {
   const { data: positions, isLoading, isError } = usePositions()
   const { data: prices } = usePrices()
-  const { mutate: closePos, isPending: isClosing, variables: closingVars } = useClosePosition()
+  const { closePosition: closePos, isClosing, variables: closingVars } = useClosePosition()
 
   if (isLoading) return <TableSkeleton rows={2} />
 

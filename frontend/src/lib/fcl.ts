@@ -7,6 +7,8 @@ fcl.config({
   "flow.network": "testnet",
   "accessNode.api": "https://rest-testnet.onflow.org",
   "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
+  "discovery.wallet.method": "POP/RPC",
+  "walletconnect.projectId": process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
   "app.detail.title": "Panta PerpDEX",
   "app.detail.icon": "https://panta.fi/icon.png",
   "0xFungibleToken": "0x9a0766d93b6608b7",

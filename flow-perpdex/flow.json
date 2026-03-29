@@ -35,6 +35,10 @@
     "StakingRewards": {
       "source": "./cadence/contracts/StakingRewards.cdc",
       "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "TradingRouter": {
+      "source": "./cadence/contracts/TradingRouter.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
     }
   },
   "dependencies": {
@@ -55,7 +59,13 @@
   "accounts": {
     "panta-testnet": {
       "address": "a6d1a763be01f1fa",
-      "key": { "type": "file", "location": "panta-testnet.pkey" }
+      "key": {
+        "type": "hex",
+        "index": 0,
+        "signatureAlgorithm": "ECDSA_P256",
+        "hashAlgorithm": "SHA3_256",
+        "privateKey": "$FLOW_PRIVATE_KEY"
+      }
     }
   },
   "deployments": {
@@ -69,7 +79,8 @@
         "Vault",
         "PositionManager",
         "MockUSDCFaucet",
-        "StakingRewards"
+        "StakingRewards",
+        "TradingRouter"
       ]
     }
   }

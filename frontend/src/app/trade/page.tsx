@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { TradingChart } from '@/components/trade/TradingChart'
 import { OrderPanel } from '@/components/trade/OrderPanel'
@@ -10,6 +11,7 @@ import { OrdersTable } from '@/components/trade/OrdersTable'
 import { TradeHistory } from '@/components/trade/TradeHistory'
 import { usePrices } from '@/hooks/usePrices'
 import { formatPrice } from '@/lib/utils/format'
+import { getTokenImage } from '@/lib/tokenImages'
 
 type Tab = 'positions' | 'orders' | 'history'
 
@@ -27,12 +29,16 @@ function PriceHeaderBar({ token }: { token: string }) {
   return (
     <div className="flex items-center gap-8 px-8 py-3 bg-[#0A0A0A]">
       <div className="flex items-center gap-3">
-        <div
-          className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
-          style={{ background: TOKEN_COLORS[token] ?? '#666' }}
-        >
-          <div className="w-2 h-2 bg-white rounded-full opacity-40" />
-        </div>
+        {getTokenImage(token) ? (
+          <Image src={getTokenImage(token)!} alt={token} width={24} height={24} className="rounded-full" />
+        ) : (
+          <div
+            className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+            style={{ background: TOKEN_COLORS[token] ?? '#666' }}
+          >
+            <div className="w-2 h-2 bg-white rounded-full opacity-40" />
+          </div>
+        )}
         <span className="text-2xl font-bold tabular-nums text-white tracking-tight">
           {price > 0 ? `$${price.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}` : '—'}
         </span>

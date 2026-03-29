@@ -1,7 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import { usePrices } from '@/hooks/usePrices'
 import { formatPrice } from '@/lib/utils/format'
+import { getTokenImage } from '@/lib/tokenImages'
 
 interface MarketSelectorProps {
   selectedToken: string
@@ -15,6 +17,10 @@ const MARKETS = [
 ]
 
 function CoinIcon({ token }: { token: string }) {
+  const src = getTokenImage(token)
+  if (src) {
+    return <Image src={src} alt={token} width={20} height={20} className="rounded-full" />
+  }
   const color = MARKETS.find(m => m.token === token)?.color ?? '#666'
   return <div className="w-3 h-3 rounded-full shadow-sm" style={{ background: color }} />
 }

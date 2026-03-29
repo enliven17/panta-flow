@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getPositions, closePosition } from '@/lib/api'
+import { useQuery } from '@tanstack/react-query'
+import { getPositions } from '@/lib/api'
 import { useFlowNetwork } from './useFlowNetwork'
 
 export interface Position {
@@ -34,22 +34,3 @@ export function usePositions() {
   })
 }
 
-export function useClosePosition() {
-  const queryClient = useQueryClient()
-  const { user } = useFlowNetwork()
-
-  return useMutation({
-    mutationFn: (params: {
-      indexToken: string
-      collateralDelta: number
-      sizeDelta: number
-      isLong: boolean
-    }) => {
-      if (!user.addr) throw new Error('Not connected')
-      return closePosition({ account: user.addr, ...params })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['positions', user.addr] })
-    },
-  })
-}

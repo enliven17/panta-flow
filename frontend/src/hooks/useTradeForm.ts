@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { openPosition } from '@/lib/api'
+import { fcl } from '@/lib/fcl'
+import { OPEN_POSITION_TX } from '@/lib/transactions'
 import { useFlowNetwork } from './useFlowNetwork'
 
 export type OrderType = 'market' | 'limit'
 export type Direction = 'long' | 'short'
+
+export type TxStatus = 'idle' | 'pending' | 'sealed' | 'error'
 
 interface TradeFormState {
   direction: Direction
@@ -28,6 +31,9 @@ export function useTradeForm(market: 'BTC' | 'ETH' | 'FLOW' = 'BTC') {
     limitPrice: '',
   })
 
+  const [txStatus, setTxStatus] = useState<TxStatus>('idle')
+  const [txId, setTxId] = useState<string | null>(null)
+
   const sizeUsd = state.collateral ? parseFloat(state.collateral) * state.leverage : 0
 
   function setDirection(direction: Direction) { setState((s) => ({ ...s, direction })) }
@@ -38,6 +44,8 @@ export function useTradeForm(market: 'BTC' | 'ETH' | 'FLOW' = 'BTC') {
 
   function reset() {
     setState({ direction: 'long', orderType: 'market', collateral: '', leverage: 2, limitPrice: '' })
+    setTxStatus('idle')
+    setTxId(null)
   }
 
   const isValid =
@@ -46,19 +54,44 @@ export function useTradeForm(market: 'BTC' | 'ETH' | 'FLOW' = 'BTC') {
     (state.orderType === 'market' || (!!state.limitPrice && parseFloat(state.limitPrice) > 0))
 
   const submitMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!user.addr || !isValid) throw new Error('Invalid state')
-      return openPosition({
-        account: user.addr,
-        indexToken: market,
-        collateralDelta: parseFloat(state.collateral),
-        sizeDelta: parseFloat(state.collateral) * state.leverage,
-        isLong: state.direction === 'long',
+
+      const collateralNum = parseFloat(state.collateral)
+      const sizeNum = collateralNum * state.leverage
+
+      setTxStatus('pending')
+      setTxId(null)
+
+      // User signs directly via wallet — no backend involvement
+      const id = await fcl.mutate({
+        cadence: OPEN_POSITION_TX,
+        args: (arg: any, t: any) => [
+          arg(market, t.String),
+          arg(collateralNum.toFixed(8), t.UFix64),
+          arg(sizeNum.toFixed(8), t.UFix64),
+          arg(state.direction === 'long', t.Bool),
+        ],
+        proposer: fcl.authz,
+        payer: fcl.authz,
+        authorizations: [fcl.authz],
+        limit: 9999,
       })
+
+      setTxId(id)
+
+      // Wait for on-chain confirmation
+      await fcl.tx(id).onceSealed()
+      setTxStatus('sealed')
+
+      return id
     },
     onSuccess: () => {
       reset()
       queryClient.invalidateQueries({ queryKey: ['positions', user.addr] })
+    },
+    onError: () => {
+      setTxStatus('error')
     },
   })
 
@@ -66,6 +99,8 @@ export function useTradeForm(market: 'BTC' | 'ETH' | 'FLOW' = 'BTC') {
     ...state,
     sizeUsd,
     isValid,
+    txStatus,
+    txId,
     setDirection,
     setOrderType,
     setCollateral,

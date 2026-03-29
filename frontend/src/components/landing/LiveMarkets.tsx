@@ -1,9 +1,11 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePrices } from '@/hooks/usePrices'
 import { formatPrice } from '@/lib/utils/format'
+import { getTokenImage } from '@/lib/tokenImages'
 
 const PREVIEW_MARKETS = [
   { symbol: 'BTC', name: 'Bitcoin', color: '#FF9900' },
@@ -51,12 +53,18 @@ export function LiveMarkets() {
 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
-                    <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg"
-                      style={{ backgroundColor: market.color }}
-                    >
-                      {market.symbol[0]}
-                    </div>
+                    {getTokenImage(market.symbol) ? (
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg flex items-center justify-center bg-[#111]">
+                        <Image src={getTokenImage(market.symbol)!} alt={market.symbol} width={40} height={40} />
+                      </div>
+                    ) : (
+                      <div 
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg"
+                        style={{ backgroundColor: market.color }}
+                      >
+                        {market.symbol[0]}
+                      </div>
+                    )}
                     <div>
                       <h3 className="text-xl font-black text-white">{market.name}</h3>
                       <p className="text-[11px] font-bold text-[#444] uppercase tracking-widest">{market.symbol} / USDT</p>

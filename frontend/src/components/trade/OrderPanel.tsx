@@ -2,9 +2,8 @@
 
 import { useRef, useCallback, useEffect } from 'react'
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
-import { useTradeForm, Direction } from '@/hooks/useTradeForm'
+import { useTradeForm, Direction, TxStatus } from '@/hooks/useTradeForm'
 import { usePrices } from '@/hooks/usePrices'
-import { setupAccount } from '@/lib/fcl'
 
 type Market = 'ETH' | 'BTC' | 'FLOW'
 
@@ -28,6 +27,31 @@ function calcLiqPrice(entryPrice: number, leverage: number, isLong: boolean): nu
 function validateLeverage(leverage: number): { isValid: boolean; error?: string } {
   if (leverage < 1 || leverage > 10) return { isValid: false, error: 'Maximum leverage is 10x' }
   return { isValid: true }
+}
+
+function TxStatusBadge({ status, txId }: { status: TxStatus; txId: string | null }) {
+  if (status === 'idle') return null
+
+  const configs = {
+    pending: { label: 'Awaiting signature…', color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/20' },
+    sealed:  { label: 'Transaction confirmed', color: 'text-[#00C076]', bg: 'bg-[#00C076]/10 border-[#00C076]/20' },
+    error:   { label: 'Transaction failed', color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/20' },
+  }
+  const cfg = configs[status]
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[12px] font-bold ${cfg.bg}`}>
+      {status === 'pending' && (
+        <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin flex-shrink-0" />
+      )}
+      {status === 'sealed' && <span className="flex-shrink-0">✓</span>}
+      {status === 'error' && <span className="flex-shrink-0">✗</span>}
+      <span className={cfg.color}>{cfg.label}</span>
+      {txId && status === 'sealed' && (
+        <span className="text-[#555] font-mono truncate">{txId.slice(0, 8)}…</span>
+      )}
+    </div>
+  )
 }
 
 export function OrderPanel({ market }: OrderPanelProps) {
@@ -62,16 +86,12 @@ export function OrderPanel({ market }: OrderPanelProps) {
     ? calcLiqPrice(currentPrice, form.leverage, form.direction === 'long')
     : null
 
-  async function handleOpenPosition() {
+  function handleOpenPosition() {
     if (!form.isValid || !user.addr) return
-    // Setup account first (creates vaults) — idempotent
-    try {
-      await setupAccount()
-    } catch {
-      // Already set up, ignore
-    }
     form.submit()
   }
+
+  const isDisabled = !form.isValid || form.isSubmitting || !leverageValidation.isValid || form.txStatus === 'pending'
 
   return (
     <div className="flex flex-col gap-3">
@@ -210,9 +230,13 @@ export function OrderPanel({ market }: OrderPanelProps) {
         <span className="text-[12px] text-red-400 font-bold px-1">{leverageValidation.error}</span>
       )}
 
-      {form.submitError && (
-        <span className="text-[11px] text-red-400 font-bold px-1">{(form.submitError as Error).message}</span>
+      {form.submitError && form.txStatus === 'error' && (
+        <span className="text-[11px] text-red-400 font-bold px-1">
+          {(form.submitError as Error).message}
+        </span>
       )}
+
+      <TxStatusBadge status={form.txStatus} txId={form.txId} />
 
       {!isConnected ? (
         <button
@@ -224,13 +248,13 @@ export function OrderPanel({ market }: OrderPanelProps) {
       ) : (
         <button
           onClick={handleOpenPosition}
-          disabled={!form.isValid || form.isSubmitting || !leverageValidation.isValid}
+          disabled={isDisabled}
           className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#00C076] to-[#00E090] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)] active:scale-[0.98] transition-all disabled:opacity-30 disabled:pointer-events-none"
         >
-          {form.isSubmitting ? (
+          {form.txStatus === 'pending' ? (
             <div className="flex items-center justify-center gap-3">
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <span>SUBMITTING...</span>
+              <span>Confirm in wallet…</span>
             </div>
           ) : (
             `Open ${form.direction.charAt(0).toUpperCase() + form.direction.slice(1)}`
