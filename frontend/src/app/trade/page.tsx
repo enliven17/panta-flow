@@ -13,18 +13,28 @@ import { formatPrice } from '@/lib/utils/format'
 
 type Tab = 'positions' | 'orders' | 'history'
 
+const TOKEN_COLORS: Record<string, string> = {
+  BTC: '#FF9900',
+  ETH: '#627EEA',
+  FLOW: '#00EF8B',
+}
+
 function PriceHeaderBar({ token }: { token: string }) {
   const { data: prices } = usePrices()
-  const price = prices?.[token] ? parseFloat(prices[token]) : (token === 'BTC' ? 63601.08 : 3452.12)
+  const price = prices?.[token] ? parseFloat(prices[token]) : 0
+  const decimals = token === 'FLOW' ? 4 : 2
 
   return (
     <div className="flex items-center gap-8 px-8 py-3 bg-[#0A0A0A]">
       <div className="flex items-center gap-3">
-        <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-lg ${token === 'BTC' ? 'bg-[#FF9900]' : 'bg-[#627EEA]'}`}>
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+          style={{ background: TOKEN_COLORS[token] ?? '#666' }}
+        >
           <div className="w-2 h-2 bg-white rounded-full opacity-40" />
         </div>
         <span className="text-2xl font-bold tabular-nums text-white tracking-tight">
-          ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {price > 0 ? `$${price.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}` : '—'}
         </span>
       </div>
 
@@ -52,31 +62,45 @@ function PriceHeaderBar({ token }: { token: string }) {
   )
 }
 
+const EASE = [0.16, 1, 0.3, 1] as const
+
+const fromLeft  = { hidden: { opacity: 0, x: -48 }, visible: { opacity: 1, x: 0, transition: { duration: 0.55, ease: EASE } } }
+const fromRight = { hidden: { opacity: 0, x:  48 }, visible: { opacity: 1, x: 0, transition: { duration: 0.55, ease: EASE } } }
+const fromTop   = { hidden: { opacity: 0, y: -24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } } }
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+}
+
 export default function TradePage() {
   const [selectedToken, setSelectedToken] = useState('BTC')
   const [tab, setTab] = useState<Tab>('positions')
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
       className="flex flex-col h-full bg-[#080808]"
     >
       {/* Market pair tabs */}
-      <MarketSelector selectedToken={selectedToken} onSelect={setSelectedToken} />
+      <motion.div variants={fromTop}>
+        <MarketSelector selectedToken={selectedToken} onSelect={setSelectedToken} />
+      </motion.div>
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-2 h-full flex flex-col">
-          {/* Rounded inner container like in the image */}
           <div className="flex-1 bg-[#0A0A0A] rounded-[32px] border border-[#151515] overflow-hidden flex flex-col shadow-2xl">
             {/* Price stats bar */}
-            <PriceHeaderBar token={selectedToken} />
+            <motion.div variants={fromTop}>
+              <PriceHeaderBar token={selectedToken} />
+            </motion.div>
 
             {/* Main trading area */}
             <div className="flex flex-1 min-h-0 px-4 pb-4">
               {/* Left: chart + positions */}
-              <div className="flex-1 flex flex-col min-w-0">
+              <motion.div variants={fromLeft} className="flex-1 flex flex-col min-w-0">
                 <div className="flex-1 min-h-0 mb-2">
                   <TradingChart token={selectedToken} />
                 </div>
@@ -110,14 +134,14 @@ export default function TradePage() {
                     {tab === 'history' && <TradeHistory />}
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Right: order panel */}
-              <div className="w-[380px] shrink-0 ml-4 border border-[#1A1A1A] rounded-2xl bg-[#0E0E0E] overflow-y-auto">
+              <motion.div variants={fromRight} className="w-[380px] shrink-0 ml-4 border border-[#1A1A1A] rounded-2xl bg-[#0E0E0E] overflow-y-auto">
                 <div className="p-6">
-                  <OrderPanel market={selectedToken as 'ETH' | 'BTC'} />
+                  <OrderPanel market={selectedToken as 'ETH' | 'BTC' | 'FLOW'} />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

@@ -18,6 +18,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'PANTA — Perpetual DEX on Flow',
   description: 'Trade perpetuals with up to 10x leverage on Flow Testnet. Powered by IncrementFi oracle.',
+  icons: {
+    icon: '/logo.svg',
+  },
 }
 
 export default function RootLayout({

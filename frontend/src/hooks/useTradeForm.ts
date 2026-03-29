@@ -16,7 +16,7 @@ interface TradeFormState {
   limitPrice: string
 }
 
-export function useTradeForm(market: 'BTC' | 'ETH' = 'BTC') {
+export function useTradeForm(market: 'BTC' | 'ETH' | 'FLOW' = 'BTC') {
   const { user } = useFlowNetwork()
   const queryClient = useQueryClient()
 

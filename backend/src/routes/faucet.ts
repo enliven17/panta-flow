@@ -61,13 +61,14 @@ router.get("/faucet/status", async (req, res) => {
       }
     `
 
-    // Check if user has a MockUSDC vault
+    // Check if user has a balance-readable MockUSDC capability
+    // New setup publishes full vault type at /public/mockUSDCBalance
+    // Old setup has Receiver-only at VaultPublicPath — needsSetup triggers re-setup
     const vaultScript = `
-      import FungibleToken from 0x9a0766d93b6608b7
       import MockUSDC from ${PANTA}
       access(all) fun main(account: Address): Bool {
         return getAccount(account)
-          .capabilities.borrow<&{FungibleToken.Balance}>(MockUSDC.VaultPublicPath) != nil
+          .capabilities.borrow<&MockUSDC.Vault>(/public/mockUSDCBalance) != nil
       }
     `
 

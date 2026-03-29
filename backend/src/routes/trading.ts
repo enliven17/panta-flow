@@ -126,15 +126,20 @@ router.get("/trade/positions", async (req, res) => {
   if (!account) return res.status(400).json({ error: "account required" })
 
   try {
-    // Read directly from chain
+    // PositionManager stores positions in a public {String: Position} dict
+    // keyed by getPositionKey(account, collateralToken, indexToken, isLong)
     const script = `
       import PositionManager from 0xPANTA
       access(all) fun main(account: Address): [PositionManager.Position?] {
-        let btcLong = PositionManager.getPosition(account: account, collateralToken: "USDC", indexToken: "BTC", isLong: true)
-        let btcShort = PositionManager.getPosition(account: account, collateralToken: "USDC", indexToken: "BTC", isLong: false)
-        let ethLong = PositionManager.getPosition(account: account, collateralToken: "USDC", indexToken: "ETH", isLong: true)
-        let ethShort = PositionManager.getPosition(account: account, collateralToken: "USDC", indexToken: "ETH", isLong: false)
-        return [btcLong, btcShort, ethLong, ethShort]
+        let tokens = ["BTC", "ETH", "FLOW"]
+        var results: [PositionManager.Position?] = []
+        for token in tokens {
+          let longKey  = PositionManager.getPositionKey(account: account, collateralToken: "USDC", indexToken: token, isLong: true)
+          let shortKey = PositionManager.getPositionKey(account: account, collateralToken: "USDC", indexToken: token, isLong: false)
+          results.append(PositionManager.positions[longKey])
+          results.append(PositionManager.positions[shortKey])
+        }
+        return results
       }
     `
     const PANTA = `0x${process.env.FLOW_DEPLOYER_ADDRESS?.replace("0x","")}`

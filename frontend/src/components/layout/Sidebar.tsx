@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+
+const EASE = [0.16, 1, 0.3, 1] as const
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { useWalletDrawer } from './WalletDrawerContext'
 
@@ -137,7 +139,10 @@ export function Sidebar() {
   const { toggle } = useWalletDrawer()
 
   return (
-    <aside
+    <motion.aside
+      initial={{ x: -80, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: EASE }}
       className="fixed left-0 top-0 bottom-0 z-50 flex flex-col items-center py-6 gap-6 bg-[#080808] border-r border-[#151515]"
       style={{ width: 'var(--sidebar-width, 68px)' }}
     >
@@ -168,6 +173,6 @@ export function Sidebar() {
 
         <WalletButton onConnectedClick={toggle} />
       </div>
-    </aside>
+    </motion.aside>
   )
 }

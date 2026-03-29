@@ -18,26 +18,37 @@ export { fcl, PANTA }
 
 // ─── Setup Account Transaction (user signs via wallet) ───────────────────────
 
+// Balance is published at a dedicated path so it doesn't conflict with the
+// existing Receiver capability that may already be published at VaultPublicPath.
+// /public/mockUSDCBalance  → &MockUSDC.Vault  (readable as Balance OR Receiver)
+// /public/pantaTokenBalance → &PANTAToken.Vault
 export const SETUP_ACCOUNT_TX = `
-import FungibleToken from 0xFungibleToken
 import MockUSDC from 0xPANTA
 import PANTAToken from 0xPANTA
 
 transaction {
-    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, UnpublishCapability) &Account) {
+    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability) &Account) {
+
         // ── MockUSDC ──
         if signer.storage.borrow<&MockUSDC.Vault>(from: MockUSDC.VaultStoragePath) == nil {
             signer.storage.save(
                 <- MockUSDC.createEmptyVault(vaultType: Type<@MockUSDC.Vault>()),
                 to: MockUSDC.VaultStoragePath
             )
+            // First-time setup: publish Receiver at VaultPublicPath (for deposits)
+            signer.capabilities.publish(
+                signer.capabilities.storage.issue<&MockUSDC.Vault>(MockUSDC.VaultStoragePath),
+                at: MockUSDC.VaultPublicPath
+            )
         }
-        // Issue full-type capability so both Receiver and Balance can be borrowed
-        signer.capabilities.unpublish(MockUSDC.VaultPublicPath)
-        signer.capabilities.publish(
-            signer.capabilities.storage.issue<&MockUSDC.Vault>(MockUSDC.VaultStoragePath),
-            at: MockUSDC.VaultPublicPath
-        )
+        // Publish full-type capability at balance path so balance is always readable
+        // (safe to call multiple times — only publishes if path is empty)
+        if signer.capabilities.get<&MockUSDC.Vault>(/public/mockUSDCBalance).check() == false {
+            signer.capabilities.publish(
+                signer.capabilities.storage.issue<&MockUSDC.Vault>(MockUSDC.VaultStoragePath),
+                at: /public/mockUSDCBalance
+            )
+        }
 
         // ── PANTAToken ──
         if signer.storage.borrow<&PANTAToken.Vault>(from: PANTAToken.VaultStoragePath) == nil {
@@ -45,12 +56,17 @@ transaction {
                 <- PANTAToken.createEmptyVault(vaultType: Type<@PANTAToken.Vault>()),
                 to: PANTAToken.VaultStoragePath
             )
+            signer.capabilities.publish(
+                signer.capabilities.storage.issue<&PANTAToken.Vault>(PANTAToken.VaultStoragePath),
+                at: PANTAToken.VaultPublicPath
+            )
         }
-        signer.capabilities.unpublish(PANTAToken.VaultPublicPath)
-        signer.capabilities.publish(
-            signer.capabilities.storage.issue<&PANTAToken.Vault>(PANTAToken.VaultStoragePath),
-            at: PANTAToken.VaultPublicPath
-        )
+        if signer.capabilities.get<&PANTAToken.Vault>(/public/pantaTokenBalance).check() == false {
+            signer.capabilities.publish(
+                signer.capabilities.storage.issue<&PANTAToken.Vault>(PANTAToken.VaultStoragePath),
+                at: /public/pantaTokenBalance
+            )
+        }
     }
 }
 `
@@ -73,11 +89,16 @@ export async function getUSDCBalance(address: string): Promise<number> {
   try {
     const result = await fcl.query({
       cadence: `
+        import FungibleToken from 0xFungibleToken
         import MockUSDC from 0xPANTA
         access(all) fun main(addr: Address): UFix64 {
-          let vault = getAccount(addr)
-            .capabilities.borrow<&MockUSDC.Vault>(/public/mockUSDCVault)
-          return vault?.balance ?? 0.0
+          // Try dedicated balance path first (new setup), then VaultPublicPath (legacy)
+          if let v = getAccount(addr).capabilities.borrow<&MockUSDC.Vault>(/public/mockUSDCBalance) {
+            return v.balance
+          }
+          return getAccount(addr)
+            .capabilities.borrow<&{FungibleToken.Balance}>(MockUSDC.VaultPublicPath)
+            ?.balance ?? 0.0
         }
       `,
       args: (arg: any, t: any) => [arg(address, t.Address)],

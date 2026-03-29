@@ -6,13 +6,19 @@ import { useTradeForm, Direction } from '@/hooks/useTradeForm'
 import { usePrices } from '@/hooks/usePrices'
 import { setupAccount } from '@/lib/fcl'
 
-type Market = 'ETH' | 'BTC'
+type Market = 'ETH' | 'BTC' | 'FLOW'
 
 interface OrderPanelProps {
   market: Market
 }
 
 const MARGIN_FEE = 0.001 // 0.1%
+
+const MARKET_DECIMALS: Record<Market, number> = {
+  BTC: 6,
+  ETH: 4,
+  FLOW: 2,
+}
 
 function calcLiqPrice(entryPrice: number, leverage: number, isLong: boolean): number {
   if (isLong) return entryPrice * (1 - 1 / leverage + MARGIN_FEE / leverage)
@@ -32,9 +38,7 @@ export function OrderPanel({ market }: OrderPanelProps) {
   const sliderTrackRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
 
-  const currentPrice = market === 'ETH'
-    ? (prices?.ETH ? parseFloat(prices.ETH) : 0)
-    : (prices?.BTC ? parseFloat(prices.BTC) : 0)
+  const currentPrice = prices?.[market] ? parseFloat(prices[market]) : 0
 
   const leverageFromPointer = useCallback((clientX: number) => {
     if (!sliderTrackRef.current) return
@@ -133,8 +137,8 @@ export function OrderPanel({ market }: OrderPanelProps) {
           <div className="flex items-center justify-between">
             <span className={`flex-1 text-3xl font-bold tabular-nums ${form.sizeUsd > 0 && currentPrice > 0 ? 'text-white' : 'text-[#333]'}`}>
               {form.sizeUsd > 0 && currentPrice > 0
-                ? (form.sizeUsd / currentPrice).toFixed(market === 'BTC' ? 6 : 4)
-                : '0.000000'}
+                ? (form.sizeUsd / currentPrice).toFixed(MARKET_DECIMALS[market])
+                : '0.' + '0'.repeat(MARKET_DECIMALS[market])}
             </span>
             <span className="text-[14px] font-bold text-[#555] ml-4">{market}</span>
           </div>
