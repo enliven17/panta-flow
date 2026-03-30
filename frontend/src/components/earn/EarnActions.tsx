@@ -30,7 +30,7 @@ export function EarnActions() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
+      <div className="flex-1">
         {activeTab === 'PLP' && <PLPCard isSimple />}
         {activeTab === 'PANTA' && <PantaCard isSimple />}
         {activeTab === 'REWARDS' && <RewardsCard isSimple />}

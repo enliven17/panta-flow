@@ -43,14 +43,12 @@ export function PLPCard({ isSimple }: { isSimple?: boolean }) {
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#1A1A1A] border border-[#222]">
-          <TokenInput
-            label={mode === 'buy' ? 'Pay USDC' : 'Burn PLP'}
-            value={amount}
-            onChange={setAmount}
-            symbol={mode === 'buy' ? 'USDC' : 'PLP'}
-          />
-        </div>
+        <TokenInput
+          label={mode === 'buy' ? 'Pay USDC' : 'Burn PLP'}
+          value={amount}
+          onChange={setAmount}
+          symbol={mode === 'buy' ? 'USDC' : 'PLP'}
+        />
 
         <button
           disabled

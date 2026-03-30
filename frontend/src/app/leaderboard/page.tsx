@@ -18,14 +18,14 @@ export default function LeaderboardPage() {
       className="flex flex-col h-full bg-[#080808]"
     >
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="max-w-[1280px] mx-auto w-full p-6 pt-10">
+        <div className="max-w-[1280px] mx-auto w-full px-5 md:px-6 pt-6 md:pt-10 pb-6">
           <motion.div
             variants={{ hidden: { opacity: 0, x: -48 }, visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: EASE } } }}
-            className="mb-10 flex items-end justify-between"
+            className="mb-6 md:mb-10 flex items-end justify-between"
           >
             <div>
-              <p className="text-[10px] font-bold text-[#666] uppercase tracking-[0.4em] mb-3">Community Rankings</p>
-              <h1 className="text-4xl font-black text-white tracking-tighter">Leaderboard</h1>
+              <p className="text-[10px] font-bold text-[#666] uppercase tracking-[0.4em] mb-2 md:mb-3">Community Rankings</p>
+              <h1 className="text-2xl md:text-4xl font-black text-white tracking-tighter">Leaderboard</h1>
             </div>
             <div className="hidden md:block text-right">
               <p className="text-[10px] font-bold text-[#444] uppercase tracking-[0.2em]">Updated</p>

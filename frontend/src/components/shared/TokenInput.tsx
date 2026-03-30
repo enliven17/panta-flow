@@ -33,16 +33,16 @@ export function TokenInput({
           </button>
         )}
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 bg-transparent text-xl font-mono tabular-nums outline-none placeholder:text-[var(--text-ghost)] disabled:opacity-30 caret-[var(--accent)]"
+          className="flex-1 min-w-0 bg-transparent text-xl font-mono tabular-nums outline-none placeholder:text-[var(--text-ghost)] disabled:opacity-30 caret-[var(--accent)]"
         />
-        <span className="text-xs font-semibold text-[var(--text-secondary)] shrink-0 px-3 py-1.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]">
+        <span className="text-xs font-semibold text-[var(--text-secondary)] shrink-0 px-2.5 py-1.5 rounded-lg bg-[var(--surface-3)] border border-[var(--border-subtle)]">
           {symbol}
         </span>
       </div>

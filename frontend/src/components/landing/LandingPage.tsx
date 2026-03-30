@@ -175,12 +175,10 @@ export function LandingPage() {
       {/* ── Hero Section ────────────────────────────────────────────── */}
       <section className="h-screen relative">
         <div
-          className="absolute bottom-0 left-0 z-20 max-w-2xl"
-          style={{ padding: '80px 56px' }}
+          className="absolute bottom-0 left-0 z-20 max-w-2xl px-6 pb-10 sm:px-14 sm:pb-20"
         >
 
-
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-8">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-6 sm:mb-8">
             <ClipRevealLine text="Perpetual" index={0} />
             <span className="block text-[#00C076]">
               {typedWord}
@@ -199,33 +197,21 @@ export function LandingPage() {
             <div className="flex items-center gap-3 mb-8">
               <Link
                 href="/trade"
-                className="group relative h-12 px-8 flex items-center gap-2.5 rounded-xl overflow-hidden font-black text-sm uppercase tracking-wider transition-all active:scale-[0.97]"
+                className="group relative h-9 sm:h-12 px-5 sm:px-8 flex items-center gap-2 rounded-xl overflow-hidden font-black text-xs sm:text-sm uppercase tracking-wider transition-all active:scale-[0.97]"
                 style={{ background: 'linear-gradient(135deg, #00C076 0%, #00E090 100%)' }}
               >
-                {/* Shine sweep on hover */}
                 <span
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%)' }}
                 />
                 <span className="relative text-white">Start Trading</span>
-                <svg
-                  className="relative"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
+                <svg className="relative" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
               </Link>
               <Link
-                href="/faucet"
-                className="h-12 px-8 flex items-center rounded-xl font-bold text-sm uppercase tracking-wider transition-all active:scale-[0.97] text-white/50 hover:text-white"
+                href="/earn"
+                className="h-9 sm:h-12 px-5 sm:px-8 flex items-center rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all active:scale-[0.97] text-white/50 hover:text-white"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}

@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePrices } from '@/hooks/usePrices'
 import { formatPrice } from '@/lib/utils/format'
 import { getTokenImage } from '@/lib/tokenImages'
@@ -29,8 +30,12 @@ export function MarketSelector({ selectedToken, onSelect }: MarketSelectorProps)
   const { data: prices } = usePrices()
 
   return (
-    <div className="flex items-center gap-1 px-6 py-2 overflow-x-auto bg-[#080808]"
+    <div className="flex items-center px-2 md:px-6 py-2 overflow-x-auto bg-[#080808]"
          style={{ scrollbarWidth: 'none' }}>
+      {/* Logo — only on mobile (sidebar hidden) */}
+      <Link href="/" className="md:hidden shrink-0 mr-3">
+        <Image src="/logo.svg" alt="Panta" width={28} height={28} />
+      </Link>
       {MARKETS.map((market) => {
         const isActive = selectedToken === market.token
         const price = prices?.[market.token]
@@ -38,18 +43,18 @@ export function MarketSelector({ selectedToken, onSelect }: MarketSelectorProps)
           <button
             key={market.token}
             onClick={() => onSelect(market.token)}
-            className={`group relative flex items-center gap-3 px-4 py-1.5 rounded-lg transition-all duration-200 border ${
+            className={`group relative flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-lg transition-all duration-200 border shrink-0 ${
               isActive
                 ? 'bg-[#111] border-[#222] shadow-sm'
                 : 'bg-transparent border-transparent hover:bg-[#0E0E0E] text-[#444]'
             }`}
           >
             <CoinIcon token={market.token} />
-            <div className="flex items-center gap-2">
-              <span className={`text-[12px] font-bold ${isActive ? 'text-white' : 'text-[#555]'}`}>
+            <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+              <span className={`text-[11px] md:text-[12px] font-bold leading-tight ${isActive ? 'text-white' : 'text-[#555]'}`}>
                 {market.label}
               </span>
-              <span className={`text-[11px] tabular-nums font-medium ${isActive ? 'text-[#AAA]' : 'text-[#333]'}`}>
+              <span className={`text-[10px] md:text-[11px] tabular-nums font-medium leading-tight ${isActive ? 'text-[#AAA]' : 'text-[#333]'}`}>
                 {price ? `$${formatPrice(price)}` : '—'}
               </span>
             </div>

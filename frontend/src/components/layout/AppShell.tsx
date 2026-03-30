@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
-import { Sidebar } from './Sidebar'
+import { Sidebar, BottomNav } from './Sidebar'
 import { WalletDrawer } from './WalletDrawer'
 import { useWalletDrawer } from './WalletDrawerContext'
 import { IntroScreen } from './IntroScreen'
@@ -25,22 +25,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setShowIntro(false)
   }
 
+  const isLanding = pathname === '/'
+
   return (
     <>
-      {pathname === '/' && <SceneCanvas />}
+      {isLanding && <SceneCanvas />}
       {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       <Sidebar animateIn={!showIntro} />
       <motion.div
-        className="flex-1 min-h-screen"
-        style={{ marginLeft: 'var(--sidebar-width)' }}
+        className={`flex-1 min-h-screen md:ml-[var(--sidebar-width)]`}
         animate={!showIntro ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
-        <main className="h-screen overflow-y-auto overflow-x-hidden">
-          {/* Mount children only after intro — fresh mount triggers page animations */}
+        {/* pb-16 on mobile reserves space for bottom nav */}
+        <main className="h-[100dvh] md:h-screen overflow-y-auto overflow-x-hidden pb-16 md:pb-0">
           {!showIntro && children}
         </main>
       </motion.div>
+      <BottomNav animateIn={!showIntro} />
       {isConnected && (
         <WalletDrawer open={open} onClose={close} />
       )}

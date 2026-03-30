@@ -50,8 +50,6 @@ function formatPnl(pnl: number): string {
   return `${sign}$${abs.toFixed(2)}`
 }
 
-
-
 export function LeaderboardTable() {
   const [period, setPeriod] = useState<Period>('ALL')
 
@@ -81,7 +79,6 @@ export function LeaderboardTable() {
     }
     statsMap[addr].trades++
     statsMap[addr].volume += t.sizeDelta || 0
-    // Only count PnL from close trades
     if (t.type === 'decrease') {
       statsMap[addr].pnl += t.pnl || 0
     }
@@ -96,24 +93,23 @@ export function LeaderboardTable() {
   const totalTraders = ranked.length
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Ultra-Minimal Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
+    <div className="flex flex-col gap-4 md:gap-6">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-1">
         {[
           { label: 'Traders', value: totalTraders.toLocaleString() },
           { label: 'Trades', value: totalTrades.toLocaleString() },
           { label: 'Volume', value: formatVolume(totalVolume) },
         ].map(s => (
-          <div key={s.label} className="border-l border-[#111] first:border-l-0 px-6 py-2">
-            <p className="text-[10px] text-[#444] uppercase tracking-widest">{s.label}</p>
-            <p className="text-xl font-medium text-white tabular-nums tracking-tight">{s.value}</p>
+          <div key={s.label} className="border-l border-[#111] first:border-l-0 px-3 md:px-6 py-2">
+            <p className="text-[9px] md:text-[10px] text-[#444] uppercase tracking-widest">{s.label}</p>
+            <p className="text-base md:text-xl font-medium text-white tabular-nums tracking-tight">{s.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Simplified Table Container */}
       <div className="bg-[#080808]">
-        {/* Minimal Toolbar */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between pb-4">
           <div className="flex gap-4">
             {(['ALL', '7D', '24H'] as Period[]).map(p => (
@@ -128,24 +124,28 @@ export function LeaderboardTable() {
               </button>
             ))}
           </div>
-          <p className="text-[9px] text-[#222] font-black uppercase tracking-widest">Real-time Data</p>
+          <p className="text-[9px] text-[#222] font-black uppercase tracking-widest hidden sm:block">Real-time Data</p>
         </div>
 
-        {/* Column Labels - Smaller & Lighter */}
-        <div className="grid grid-cols-[50px_1fr_80px_100px_110px_90px] gap-4 py-2 border-b border-[#111]">
+        {/* Column headers — mobile shows Rank/Account/Trades/PnL, desktop adds Volume/Activity */}
+        <div className="grid grid-cols-[36px_1fr_56px_80px] md:grid-cols-[50px_1fr_80px_100px_110px_90px] gap-2 md:gap-4 py-2 border-b border-[#111]">
           <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest">Rank</span>
           <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest">Account</span>
           <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">Trades</span>
-          <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">Volume</span>
+          <span className="hidden md:block text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">Volume</span>
           <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">PnL</span>
-          <span className="text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">Activity</span>
+          <span className="hidden md:block text-[9px] font-bold text-[#222] uppercase tracking-widest text-right">Activity</span>
         </div>
 
-        {/* Table Content */}
+        {/* Rows */}
         <div className="divide-y divide-[#0d0d0d]">
           {isLoading ? (
             <div className="py-20 text-center">
               <span className="text-[10px] text-[#222] uppercase tracking-widest animate-pulse">Syncing...</span>
+            </div>
+          ) : ranked.length === 0 ? (
+            <div className="py-20 text-center">
+              <span className="text-[10px] text-[#222] uppercase tracking-widest">No data yet</span>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -154,7 +154,7 @@ export function LeaderboardTable() {
                   key={trader.address}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="grid grid-cols-[50px_1fr_80px_100px_110px_90px] gap-4 py-4 hover:bg-[#111]/10 transition-all group"
+                  className="grid grid-cols-[36px_1fr_56px_80px] md:grid-cols-[50px_1fr_80px_100px_110px_90px] gap-2 md:gap-4 py-3 md:py-4 hover:bg-[#111]/10 transition-all group"
                 >
                   <div className="text-[11px] font-medium tabular-nums text-[#333] flex items-center">
                     {String(i + 1).padStart(2, '0')}
@@ -175,7 +175,7 @@ export function LeaderboardTable() {
                     <span className="text-xs tabular-nums text-[#555]">{trader.trades}</span>
                   </div>
 
-                  <div className="text-right flex items-center justify-end">
+                  <div className="hidden md:flex text-right items-center justify-end">
                     <span className="text-xs tabular-nums text-[#888]">{formatVolume(trader.volume)}</span>
                   </div>
 
@@ -187,15 +187,15 @@ export function LeaderboardTable() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-end">
+                  <div className="hidden md:flex items-center justify-end">
                     <div className="w-16 h-0.5 bg-[#111] rounded-full overflow-hidden flex">
-                      <div 
-                        className="h-full bg-blue-500/50" 
-                        style={{ width: `${(trader.longs / (trader.longs + trader.shorts || 1)) * 100}%` }} 
+                      <div
+                        className="h-full bg-blue-500/50"
+                        style={{ width: `${(trader.longs / (trader.longs + trader.shorts || 1)) * 100}%` }}
                       />
-                      <div 
-                        className="h-full bg-red-500/50" 
-                        style={{ width: `${(trader.shorts / (trader.longs + trader.shorts || 1)) * 100}%` }} 
+                      <div
+                        className="h-full bg-red-500/50"
+                        style={{ width: `${(trader.shorts / (trader.longs + trader.shorts || 1)) * 100}%` }}
                       />
                     </div>
                   </div>

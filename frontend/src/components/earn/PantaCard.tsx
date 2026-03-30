@@ -73,15 +73,26 @@ export function PantaCard({ isSimple }: { isSimple?: boolean }) {
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#1A1A1A] border border-[#222]">
+        <div className="flex flex-col gap-2">
           {mode === 'stake' && isConnected && (
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex justify-between items-center px-1">
               <span className="text-[10px] text-[#444] uppercase tracking-widest">Wallet</span>
               <button
                 onClick={() => setAmount(walletPanta.toFixed(8))}
                 className="text-[11px] text-[#666] hover:text-white transition-colors font-mono"
               >
                 {walletPanta.toFixed(4)} PANTA
+              </button>
+            </div>
+          )}
+          {mode === 'unstake' && isConnected && (
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] text-[#444] uppercase tracking-widest">Staked</span>
+              <button
+                onClick={() => setAmount(pantaInfo.stakedAmount.toFixed(8))}
+                className="text-[11px] text-[#666] hover:text-white transition-colors font-mono"
+              >
+                {pantaInfo.stakedAmount.toFixed(4)} PANTA
               </button>
             </div>
           )}
@@ -92,7 +103,7 @@ export function PantaCard({ isSimple }: { isSimple?: boolean }) {
             symbol={mode === 'buy' ? 'USDC' : 'PANTA'}
           />
           {mode === 'buy' && parseFloat(amount) > 0 && (
-            <p className="mt-2 text-[11px] text-[#555]">
+            <p className="text-[11px] text-[#555] px-1">
               You receive: <span className="text-white font-bold">{pantaOut.toFixed(4)} PANTA</span>
               <span className="ml-2 text-[#333]">(rate: 100 USDC = 1 PANTA)</span>
             </p>
@@ -160,6 +171,28 @@ export function PantaCard({ isSimple }: { isSimple?: boolean }) {
         </div>
 
         <div className="relative p-8 rounded-[24px] bg-[#080808] border border-[#151515]">
+          {mode === 'stake' && isConnected && (
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] text-[#444] uppercase tracking-widest">Wallet</span>
+              <button
+                onClick={() => setAmount(walletPanta.toFixed(8))}
+                className="text-[11px] text-[#666] hover:text-white transition-colors font-mono"
+              >
+                {walletPanta.toFixed(4)} PANTA
+              </button>
+            </div>
+          )}
+          {mode === 'unstake' && isConnected && (
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] text-[#444] uppercase tracking-widest">Staked</span>
+              <button
+                onClick={() => setAmount(pantaInfo.stakedAmount.toFixed(8))}
+                className="text-[11px] text-[#666] hover:text-white transition-colors font-mono"
+              >
+                {pantaInfo.stakedAmount.toFixed(4)} PANTA
+              </button>
+            </div>
+          )}
           <TokenInput
             label={mode === 'buy' ? 'Pay USDC' : mode === 'stake' ? 'Stake PANTA' : 'Unstake PANTA'}
             value={amount}
