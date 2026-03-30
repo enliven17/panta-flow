@@ -407,3 +407,9 @@ flow project deploy --network testnet
 - **Flow Docs:** https://developers.flow.com
 - **Pyth Hermes:** https://hermes.pyth.network
 - **Testnet Faucet:** https://faucet.flow.com/fund-account
+
+---
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](LICENSE) file for more details.

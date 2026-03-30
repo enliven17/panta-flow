@@ -1,6 +1,7 @@
 {
   "name": "panta-backend",
   "version": "1.0.0",
+  "license": "AGPL-3.0",
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc && cp -r src/cadence dist/cadence",
