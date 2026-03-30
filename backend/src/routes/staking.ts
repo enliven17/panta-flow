@@ -4,7 +4,7 @@ import { readFileSync } from "fs"
 import { join } from "path"
 
 const router = Router()
-const CADENCE_DIR = join(__dirname, "../../../flow-perpdex/cadence/transactions")
+const CADENCE_DIR = join(__dirname, "../cadence")
 
 function loadTx(path: string): string {
   return readFileSync(join(CADENCE_DIR, path), "utf8")
