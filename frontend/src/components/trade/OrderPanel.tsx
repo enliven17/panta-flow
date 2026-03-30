@@ -92,9 +92,18 @@ export function OrderPanel({ market }: OrderPanelProps) {
   useEffect(() => {
     const onMove = (e: MouseEvent) => { if (isDragging.current) leverageFromPointer(e.clientX) }
     const onUp = () => { isDragging.current = false }
+    const onTouchMove = (e: TouchEvent) => { if (isDragging.current) { e.preventDefault(); leverageFromPointer(e.touches[0].clientX) } }
+    const onTouchEnd = () => { isDragging.current = false }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onTouchEnd)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+    }
   }, [leverageFromPointer])
 
   const leverageValidation = validateLeverage(form.leverage)
@@ -288,6 +297,7 @@ export function OrderPanel({ market }: OrderPanelProps) {
           ref={sliderTrackRef}
           className="relative h-2 rounded-full bg-[#222] mb-6 mx-1 cursor-pointer"
           onMouseDown={(e) => { isDragging.current = true; leverageFromPointer(e.clientX) }}
+          onTouchStart={(e) => { isDragging.current = true; leverageFromPointer(e.touches[0].clientX) }}
         >
           <div className="h-2 bg-white rounded-full" style={{ width: `${((form.leverage - 1) / 9) * 100}%` }} />
           <div
@@ -295,13 +305,23 @@ export function OrderPanel({ market }: OrderPanelProps) {
             style={{ left: `calc(${((form.leverage - 1) / 9) * 100}% - 10px)` }}
           />
         </div>
-        <div className="flex justify-between px-1">
-          {[1, 2, 5, 10].map((val) => (
-            <button key={val} onClick={() => form.setLeverage(val)} className="group flex flex-col items-center gap-2">
-              <div className={`w-[1px] h-2 transition-colors ${form.leverage >= val ? 'bg-white' : 'bg-[#333]'}`} />
-              <span className={`text-[10px] font-bold transition-all ${Math.round(form.leverage) === val ? 'text-white' : 'text-[#333] group-hover:text-[#555]'}`}>{val}x</span>
-            </button>
-          ))}
+        <div className="relative h-7 mx-1">
+          {[1, 2, 5, 10].map((val) => {
+            const pct = ((val - 1) / 9) * 100
+            const isActive = form.leverage >= val
+            const isSelected = Math.abs(form.leverage - val) < 0.15
+            return (
+              <button
+                key={val}
+                onClick={() => form.setLeverage(val)}
+                className="absolute flex flex-col items-center gap-1 -translate-x-1/2 group"
+                style={{ left: `${pct}%` }}
+              >
+                <div className={`w-[1px] h-2 transition-colors ${isActive ? 'bg-white' : 'bg-[#333]'}`} />
+                <span className={`text-[10px] font-bold transition-all ${isSelected ? 'text-white' : 'text-[#333] group-hover:text-[#555]'}`}>{val}x</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

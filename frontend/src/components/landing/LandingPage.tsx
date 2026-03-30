@@ -173,12 +173,12 @@ export function LandingPage() {
       />
 
       {/* ── Hero Section ────────────────────────────────────────────── */}
-      <section className="h-screen relative">
+      <section className="h-[100dvh] relative">
         <div
-          className="absolute bottom-0 left-0 z-20 max-w-2xl px-6 pb-10 sm:px-14 sm:pb-20"
+          className="absolute bottom-0 left-0 z-20 max-w-2xl px-6 pb-8 sm:px-14 sm:pb-20"
         >
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-6 sm:mb-8">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.08] mb-4 sm:mb-8">
             <ClipRevealLine text="Perpetual" index={0} />
             <span className="block text-[#00C076]">
               {typedWord}
@@ -187,7 +187,7 @@ export function LandingPage() {
           </h1>
 
           <FadeBlurIn delay={0.55}>
-            <p className="text-sm sm:text-base text-white/40 font-medium max-w-sm mb-10 leading-relaxed">
+            <p className="hidden sm:block text-sm sm:text-base text-white/40 font-medium max-w-sm mb-8 leading-relaxed">
               BTC and ETH perpetuals with up to 10x leverage.
               Institutional-grade execution on Flow.
             </p>
