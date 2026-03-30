@@ -1,34 +1,40 @@
 import * as fcl from "@onflow/fcl"
-import { insertTrade, getAllTrades } from './supabaseService'
+import { insertTrade } from './supabaseService'
 
 const DEPLOYER_ADDRESS = (process.env.FLOW_DEPLOYER_ADDRESS || "").replace("0x", "")
-const PANTA = `0x${DEPLOYER_ADDRESS}`
 
-const EVENT_INCREASED = `A.${DEPLOYER_ADDRESS}.PositionManager.PositionIncreased`
-const EVENT_DECREASED = `A.${DEPLOYER_ADDRESS}.PositionManager.PositionDecreased`
+const EVENT_OPENED = `A.${DEPLOYER_ADDRESS}.TradingRouter.PositionOpened`
+const EVENT_CLOSED = `A.${DEPLOYER_ADDRESS}.TradingRouter.PositionClosed`
+
+// Flow API enforces max 250-block window per event query
+const MAX_RANGE = 249
 
 let lastBlockHeight = 0
 
-export interface Trade {
-  type: 'increase' | 'decrease'
-  account: string
-  indexToken: string
-  sizeDelta: number
-  isLong: boolean
-  price: number
-  fee: number
-  pnl: number
-  txHash: string
-  timestamp: number
+async function getLatestBlockHeight(): Promise<number> {
+  const block = await (fcl as any).send([(fcl as any).getBlock(true)]).then((fcl as any).decode)
+  return block.height as number
+}
+
+async function getEventsInRange(eventType: string, start: number, end: number): Promise<any[]> {
+  const results: any[] = []
+  for (let from = start; from <= end; from += MAX_RANGE) {
+    const to = Math.min(from + MAX_RANGE - 1, end)
+    const chunk = await (fcl as any)
+      .send([(fcl as any).getEventsAtBlockHeightRange(eventType, from, to)])
+      .then((fcl as any).decode)
+    results.push(...(chunk ?? []))
+  }
+  return results
 }
 
 export async function fetchRecentTrades(): Promise<void> {
   try {
-    const latestBlock = await (fcl as any).send([(fcl as any).getBlock(true)]).then((fcl as any).decode)
-    const currentHeight = latestBlock.height
+    const currentHeight = await getLatestBlockHeight()
 
     if (lastBlockHeight === 0) {
-      lastBlockHeight = currentHeight - 1000 // poll last 1000 blocks on start to catch recent tests
+      // Only look back 500 blocks on first run to avoid huge initial range
+      lastBlockHeight = Math.max(0, currentHeight - 500)
     }
 
     if (currentHeight <= lastBlockHeight) return
@@ -36,46 +42,52 @@ export async function fetchRecentTrades(): Promise<void> {
     const start = lastBlockHeight + 1
     const end = currentHeight
 
-    // fetch increase events
-    const increaseEvents = await (fcl as any).send([
-      (fcl as any).getEventsAtHeightRange(EVENT_INCREASED, start, end)
-    ]).then((fcl as any).decode)
+    const [openedEvents, closedEvents] = await Promise.all([
+      getEventsInRange(EVENT_OPENED, start, end),
+      getEventsInRange(EVENT_CLOSED, start, end),
+    ])
 
-    // fetch decrease events
-    const decreaseEvents = await (fcl as any).send([
-      (fcl as any).getEventsAtHeightRange(EVENT_DECREASED, start, end)
-    ]).then((fcl as any).decode)
-
-    const allEvents = [...increaseEvents, ...decreaseEvents].sort((a, b) => a.blockHeight - b.blockHeight)
+    const allEvents = [...openedEvents, ...closedEvents]
+      .sort((a, b) => a.blockHeight - b.blockHeight)
 
     for (const evt of allEvents) {
       const data = evt.data
-      const type = evt.type.endsWith('PositionIncreased') ? 'increase' : 'decrease'
-      
+      const isOpen = evt.type.endsWith('PositionOpened')
+
+      // For close events: pnl = amountOut - collateralDelta (positive = profit, negative = loss)
+      let pnl = 0
+      if (!isOpen) {
+        const amountOut = parseFloat(data.amountOut ?? "0")
+        const collateralDelta = parseFloat(data.collateralDelta ?? "0")
+        pnl = amountOut - collateralDelta
+      }
+
       await insertTrade({
         account: data.account,
-        collateral_token: data.collateralToken || "USDC",
+        collateral_token: "USDC",
         index_token: data.indexToken,
         is_long: data.isLong,
-        action: type === 'increase' ? (data.isNew ? 'open' : 'increase') : 'decrease',
-        size_delta: parseFloat(data.sizeDelta),
-        collateral_delta: parseFloat(data.collateralDelta || "0"),
-        price: parseFloat(data.price),
-        fee: parseFloat(data.fee || "0"),
-        pnl: parseFloat(data.realisedPnl || "0"),
-        tx_hash: evt.transactionId
+        action: isOpen ? 'open' : 'close',
+        size_delta: parseFloat(data.sizeDelta ?? "0"),
+        collateral_delta: parseFloat(data.collateralDelta ?? "0"),
+        price: parseFloat(data.execPrice ?? "0"),
+        fee: 0,
+        pnl,
+        tx_hash: evt.transactionId,
       })
     }
 
     lastBlockHeight = end
+    if (allEvents.length > 0) {
+      console.log(`[tradesService] indexed ${allEvents.length} events (blocks ${start}→${end})`)
+    }
   } catch (err) {
     console.error("[tradesService] poll error:", err)
   }
 }
 
 export function startTradesPolling(): void {
-  // poll every 10 seconds
   setInterval(() => {
     fetchRecentTrades().catch(console.error)
-  }, 10000)
+  }, 10_000)
 }

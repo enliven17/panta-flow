@@ -11,13 +11,13 @@ router.get('/orders', async (req, res) => {
   const { account } = req.query
   try {
     const script = `
-      import TradingRouter from ${PANTA}
+      import OrderBook from ${PANTA}
 
-      access(all) fun main(): {UInt64: TradingRouter.LimitOrder} {
-        let pool = getAccount(${PANTA})
-          .capabilities.borrow<&TradingRouter.Pool>(/public/tradingRouterPool)
-          ?? panic("Cannot borrow Pool")
-        return pool.getPendingOrders()
+      access(all) fun main(): {UInt64: OrderBook.LimitOrder} {
+        let mgr = getAccount(${PANTA})
+          .capabilities.borrow<&OrderBook.OrderManager>(/public/pantaOrderBook)
+          ?? panic("Cannot borrow OrderBook.OrderManager")
+        return mgr.getAllOrders()
       }
     `
     const result = await (fcl as any).query({ cadence: script, args: () => [] })

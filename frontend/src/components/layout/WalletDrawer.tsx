@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFlowNetwork } from '@/hooks/useFlowNetwork'
-import { getUSDCBalance, getFlowBalance } from '@/lib/fcl'
+import { getUSDCBalance, getFlowBalance, getPANTABalance } from '@/lib/fcl'
 
 interface WalletDrawerProps {
   open: boolean
@@ -36,15 +36,18 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
   const address = user.addr
   const [usdcBalance, setUsdcBalance] = useState<number | null>(null)
   const [flowBalance, setFlowBalance] = useState<number | null>(null)
+  const [pantaBalance, setPantaBalance] = useState<number | null>(null)
 
   useEffect(() => {
     if (!address || !open) {
       setUsdcBalance(null)
       setFlowBalance(null)
+      setPantaBalance(null)
       return
     }
     getUSDCBalance(address).then(setUsdcBalance)
     getFlowBalance(address).then(setFlowBalance)
+    getPANTABalance(address).then(setPantaBalance)
   }, [address, open])
 
   function copyAddress() {
@@ -121,6 +124,12 @@ export function WalletDrawer({ open, onClose }: WalletDrawerProps) {
                 <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">USDC</p>
                 <p className="text-2xl font-bold tabular-nums text-white">
                   {usdcBalance === null ? '—' : usdcBalance.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#444] uppercase tracking-[0.2em] mb-1.5">PANTA</p>
+                <p className="text-lg font-semibold tabular-nums text-[#aaa]">
+                  {pantaBalance === null ? '—' : pantaBalance.toFixed(4)}
                 </p>
               </div>
               <div>

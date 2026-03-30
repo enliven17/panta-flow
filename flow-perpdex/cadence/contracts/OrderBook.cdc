@@ -192,7 +192,7 @@ access(all) contract OrderBook {
             return self.orders
         }
 
-        access(all) view fun getOrdersForAccount(account: Address): [LimitOrder] {
+        access(all) fun getOrdersForAccount(account: Address): [LimitOrder] {
             var result: [LimitOrder] = []
             for order in self.orders.values {
                 if order.account == account {

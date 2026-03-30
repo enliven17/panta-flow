@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import '@/lib/config/flow'
+import '@/lib/fcl'
 import { WalletDrawerProvider } from './WalletDrawerContext'
 
 export function Providers({ children }: { children: React.ReactNode }) {

@@ -96,7 +96,7 @@ export async function getTradesForAccount(account: string, limit = 50) {
   return data || []
 }
 
-export async function getAllTrades(limit = 100) {
+export async function getAllTrades(limit = 1000) {
   if (!isSupabaseConfigured()) return []
   const { data } = await getSupabase()
     .from("trades")

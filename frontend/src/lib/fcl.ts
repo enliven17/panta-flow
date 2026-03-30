@@ -7,8 +7,8 @@ fcl.config({
   "flow.network": "testnet",
   "accessNode.api": "https://rest-testnet.onflow.org",
   "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
-  "discovery.wallet.method": "POP/RPC",
-  "walletconnect.projectId": process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
+  "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/authn?network=testnet",
+  "walletconnect.projectId": process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo",
   "app.detail.title": "Panta PerpDEX",
   "app.detail.icon": "https://panta.fi/icon.png",
   "0xFungibleToken": "0x9a0766d93b6608b7",
@@ -139,15 +139,19 @@ export async function getPANTABalance(address: string): Promise<number> {
         import FungibleToken from 0xFungibleToken
         import PANTAToken from 0xPANTA
         access(all) fun main(addr: Address): UFix64 {
-          let vault = getAccount(addr)
+          if let v = getAccount(addr).capabilities.borrow<&PANTAToken.Vault>(/public/pantaTokenBalance) {
+            return v.balance
+          }
+          return getAccount(addr)
             .capabilities.borrow<&{FungibleToken.Balance}>(PANTAToken.VaultPublicPath)
-          return vault?.balance ?? 0.0
+            ?.balance ?? 0.0
         }
       `,
       args: (arg: any, t: any) => [arg(address, t.Address)],
     })
     return parseFloat(result as string)
-  } catch {
+  } catch (e) {
+    console.error('[getPANTABalance]', e)
     return 0
   }
 }

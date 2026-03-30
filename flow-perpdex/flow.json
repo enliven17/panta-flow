@@ -39,6 +39,10 @@
     "TradingRouter": {
       "source": "./cadence/contracts/TradingRouter.cdc",
       "aliases": { "testnet": "a6d1a763be01f1fa" }
+    },
+    "OrderBook": {
+      "source": "./cadence/contracts/OrderBook.cdc",
+      "aliases": { "testnet": "a6d1a763be01f1fa" }
     }
   },
   "dependencies": {
@@ -80,7 +84,8 @@
         "PositionManager",
         "MockUSDCFaucet",
         "StakingRewards",
-        "TradingRouter"
+        "TradingRouter",
+        "OrderBook"
       ]
     }
   }

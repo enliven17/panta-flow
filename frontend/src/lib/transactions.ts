@@ -38,7 +38,7 @@ transaction(
 export const CREATE_LIMIT_ORDER_TX = `
 import FungibleToken from 0xFungibleToken
 import MockUSDC from 0xPANTA
-import TradingRouter from 0xPANTA
+import OrderBook from 0xPANTA
 
 transaction(
     indexToken: String,
@@ -54,11 +54,11 @@ transaction(
 
         let collateral <- userVault.withdraw(amount: collateralAmount) as! @MockUSDC.Vault
 
-        let pool = getAccount(0xPANTA)
-            .capabilities.borrow<&TradingRouter.Pool>(/public/tradingRouterPool)
-            ?? panic("Cannot borrow TradingRouter.Pool")
+        let mgr = getAccount(0xPANTA)
+            .capabilities.borrow<&OrderBook.OrderManager>(/public/pantaOrderBook)
+            ?? panic("Cannot borrow OrderBook.OrderManager")
 
-        pool.createLimitOrder(
+        mgr.createOrder(
             account: signer.address,
             collateral: <-collateral,
             indexToken: indexToken,
@@ -71,15 +71,15 @@ transaction(
 `
 
 export const CANCEL_LIMIT_ORDER_TX = `
-import TradingRouter from 0xPANTA
+import OrderBook from 0xPANTA
 
 transaction(orderId: UInt64) {
     prepare(signer: auth(BorrowValue) &Account) {
-        let pool = getAccount(0xPANTA)
-            .capabilities.borrow<&TradingRouter.Pool>(/public/tradingRouterPool)
-            ?? panic("Cannot borrow TradingRouter.Pool")
+        let mgr = getAccount(0xPANTA)
+            .capabilities.borrow<&OrderBook.OrderManager>(/public/pantaOrderBook)
+            ?? panic("Cannot borrow OrderBook.OrderManager")
 
-        pool.cancelOrder(account: signer.address, orderId: orderId)
+        mgr.cancelOrder(account: signer.address, orderId: orderId)
     }
 }
 `

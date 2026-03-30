@@ -39,8 +39,6 @@ export async function keeperUpdate(): Promise<void> {
   }
 
   try {
-    const t = fcl.t as any
-    const arg = fcl.arg as any
     const txId = await sendTx(UPDATE_PRICES_TX, [
       { value: btc.toFixed(8), type: (t: any) => t.UFix64 },
       { value: eth.toFixed(8), type: (t: any) => t.UFix64 },
@@ -54,14 +52,14 @@ export async function keeperUpdate(): Promise<void> {
 
 // Cadence transaction: keeper executes a pending limit order
 const EXECUTE_ORDER_TX = `
-import TradingRouter from 0xPANTA
+import OrderBook from 0xPANTA
 
 transaction(orderId: UInt64) {
     prepare(_signer: auth(BorrowValue) &Account) {
-        let pool = getAccount(0xPANTA)
-            .capabilities.borrow<&TradingRouter.Pool>(/public/tradingRouterPool)
-            ?? panic("Cannot borrow TradingRouter.Pool")
-        pool.executeOrder(orderId: orderId)
+        let mgr = getAccount(0xPANTA)
+            .capabilities.borrow<&OrderBook.OrderManager>(/public/pantaOrderBook)
+            ?? panic("Cannot borrow OrderBook.OrderManager")
+        mgr.executeOrder(orderId: orderId)
     }
 }
 `
@@ -71,12 +69,12 @@ async function checkLimitOrders(prices: Record<string, number>): Promise<void> {
   try {
     const PANTA = `0x${(process.env.FLOW_DEPLOYER_ADDRESS || '').replace('0x', '')}`
     const script = `
-      import TradingRouter from ${PANTA}
-      access(all) fun main(): {UInt64: TradingRouter.LimitOrder} {
-        let pool = getAccount(${PANTA})
-          .capabilities.borrow<&TradingRouter.Pool>(/public/tradingRouterPool)
-          ?? panic("Cannot borrow Pool")
-        return pool.getPendingOrders()
+      import OrderBook from ${PANTA}
+      access(all) fun main(): {UInt64: OrderBook.LimitOrder} {
+        let mgr = getAccount(${PANTA})
+          .capabilities.borrow<&OrderBook.OrderManager>(/public/pantaOrderBook)
+          ?? panic("Cannot borrow OrderBook.OrderManager")
+        return mgr.getAllOrders()
       }
     `
     ordersResult = await (fcl as any).query({ cadence: script, args: () => [] })
@@ -84,7 +82,6 @@ async function checkLimitOrders(prices: Record<string, number>): Promise<void> {
     return
   }
 
-  const t = fcl.t as any
   for (const [idStr, order] of Object.entries(ordersResult as Record<string, any>)) {
     const currentPrice = prices[order.indexToken as string] ?? 0
     if (currentPrice <= 0) continue
@@ -190,7 +187,6 @@ async function checkSLTP(): Promise<void> {
     console.log(`[sltp-keeper] ${reason} triggered for ${pos.account} ${pos.index_token} ${isLong ? 'Long' : 'Short'} @ $${currentPrice}`)
 
     try {
-      const t = fcl.t as any
       await sendTx(KEEPER_CLOSE_TX, [
         { value: pos.account, type: (t: any) => t.Address },
         { value: pos.index_token, type: (t: any) => t.String },
