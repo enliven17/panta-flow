@@ -25,6 +25,14 @@ function calcPnl(pos: Position, currentPrice: number): number {
   return pos.isLong ? pnl : -pnl
 }
 
+function calcLiqPrice(pos: Position): number {
+  if (!pos.averagePrice || pos.averagePrice === 0 || pos.size === 0) return 0
+  const ratio = pos.collateral / pos.size
+  return pos.isLong
+    ? pos.averagePrice * (1 - ratio)
+    : pos.averagePrice * (1 + ratio)
+}
+
 type ManagePanel = 'addCollateral' | 'sltp' | null
 
 interface RowManageState {
@@ -275,6 +283,7 @@ export function PositionsTable() {
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">Size</th>
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">Collateral</th>
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">Entry</th>
+            <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">Liq Price</th>
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">PnL</th>
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">SL / TP</th>
             <th className="text-right py-2.5 px-3 font-medium text-[11px] tracking-wide uppercase">Actions</th>
@@ -295,6 +304,8 @@ export function PositionsTable() {
             const slVal = (pos as any).stopLoss as number | undefined
             const tpVal = (pos as any).takeProfit as number | undefined
             const leverage = pos.collateral > 0 ? pos.size / pos.collateral : 0
+            const liqPrice = calcLiqPrice(pos)
+            const decimals = pos.indexToken === 'FLOW' ? 4 : 2
 
             return (
               <motion.tr
@@ -324,7 +335,10 @@ export function PositionsTable() {
                 <td className="py-3.5 px-3 text-right font-mono tabular-nums">${pos.size.toFixed(2)}</td>
                 <td className="py-3.5 px-3 text-right font-mono tabular-nums">${pos.collateral.toFixed(2)}</td>
                 <td className="py-3.5 px-3 text-right font-mono tabular-nums">
-                  ${pos.averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${pos.averagePrice.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
+                </td>
+                <td className="py-3.5 px-3 text-right font-mono tabular-nums text-[var(--red)]">
+                  {liqPrice > 0 ? `$${liqPrice.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}` : '—'}
                 </td>
                 <td className={`py-3.5 px-3 text-right font-mono tabular-nums font-medium ${pnl >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}`}>
                   {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
