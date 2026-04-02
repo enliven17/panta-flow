@@ -285,9 +285,7 @@ export function PositionsTable() {
             const rowKey = `${pos.indexToken}-${pos.isLong}`
             const row = getRow(rowKey)
 
-            const currentPrice = pos.indexToken === 'BTC'
-              ? parseFloat(prices?.BTC ?? '0')
-              : parseFloat(prices?.ETH ?? '0')
+            const currentPrice = parseFloat(prices?.[pos.indexToken] ?? '0')
             const pnl = calcPnl(pos, currentPrice)
 
             const isThisClosing = isClosing &&
