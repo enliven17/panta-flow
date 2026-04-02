@@ -69,7 +69,7 @@ function FlowIcon({ size = 14 }: { size?: number }) {
 }
 
 export function OrderPanel({ market }: OrderPanelProps) {
-  const { user, isConnected, connect } = useFlowNetwork()
+  const { user, isConnected, sessionFresh, connect } = useFlowNetwork()
   const { data: prices } = usePrices()
   const form = useTradeForm(market)
   const limitOrder = useLimitOrder()
@@ -375,6 +375,13 @@ export function OrderPanel({ market }: OrderPanelProps) {
           className="mt-2 w-full h-[64px] rounded-2xl bg-gradient-to-r from-[#00C076] to-[#00E090] text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(0,192,118,0.3)] hover:shadow-[0_12px_28px_rgba(0,192,118,0.45)] active:scale-[0.98] transition-all"
         >
           Connect Wallet
+        </button>
+      ) : !sessionFresh ? (
+        <button
+          onClick={connect}
+          className="mt-2 w-full h-[64px] rounded-2xl bg-[#1A1A1A] border border-[#FF4466]/30 text-[14px] font-bold text-[#FF4466] hover:bg-[#FF4466]/10 active:scale-[0.98] transition-all"
+        >
+          Session expired — reconnect wallet
         </button>
       ) : (
         <button

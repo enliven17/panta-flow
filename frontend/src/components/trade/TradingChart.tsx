@@ -18,7 +18,6 @@ export function TradingChart({ token }: TradingChartProps) {
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const [interval, setActiveInterval] = useState<Interval>('5m')
   const lastIntervalRef = useRef<Interval | null>(null)
-  const lastTokenRef = useRef<string | null>(null)
 
   const { data: candles } = usePriceHistory(token, interval)
 
@@ -55,6 +54,10 @@ export function TradingChart({ token }: TradingChartProps) {
       height: 480,
     })
 
+    const priceFormat = token === 'FLOW'
+      ? { type: 'price' as const, precision: 4, minMove: 0.0001 }
+      : { type: 'price' as const, precision: 2, minMove: 0.01 }
+
     const series = chart.addCandlestickSeries({
       upColor: '#00C076',
       downColor: '#FF3B3B',
@@ -62,6 +65,7 @@ export function TradingChart({ token }: TradingChartProps) {
       borderDownColor: '#FF3B3B',
       wickUpColor: '#00C076',
       wickDownColor: '#FF3B3B',
+      priceFormat,
     })
 
     chartRef.current = chart
@@ -98,12 +102,10 @@ export function TradingChart({ token }: TradingChartProps) {
     }))
 
     const intervalChanged = lastIntervalRef.current !== interval
-    const tokenChanged = lastTokenRef.current !== token
     lastIntervalRef.current = interval
-    lastTokenRef.current = token
 
-    if (intervalChanged || tokenChanged) {
-      // Interval or token switched — reset view to fit new data
+    if (intervalChanged) {
+      // Interval switched — reset view to fit new data
       seriesRef.current.setData(mapped)
       chartRef.current?.timeScale().fitContent()
       return
@@ -116,7 +118,7 @@ export function TradingChart({ token }: TradingChartProps) {
     if (visibleRange) {
       timeScale?.setVisibleLogicalRange(visibleRange)
     }
-  }, [candles, interval, token])
+  }, [candles, interval])
 
   return (
     <div className="flex flex-col h-full">

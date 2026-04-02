@@ -11,6 +11,7 @@ interface FlowUser {
 interface UseFlowNetworkReturn {
   user: FlowUser
   isConnected: boolean
+  sessionFresh: boolean
   network: string
   isCorrectNetwork: boolean
   connect: () => void
@@ -19,6 +20,7 @@ interface UseFlowNetworkReturn {
 
 export function useFlowNetwork(): UseFlowNetworkReturn {
   const [user, setUser] = useState<FlowUser>({ addr: null, loggedIn: null })
+  const [sessionFresh, setSessionFresh] = useState(false)
 
   useEffect(() => {
     const unsub = fcl.currentUser.subscribe(setUser)
@@ -29,13 +31,24 @@ export function useFlowNetwork(): UseFlowNetworkReturn {
   const isConnected = user.loggedIn === true
   const isCorrectNetwork = network === "testnet"
 
+  const connect = () => {
+    setSessionFresh(true)
+    fcl.authenticate()
+  }
+
+  const disconnect = () => {
+    setSessionFresh(false)
+    fcl.unauthenticate()
+  }
+
   return {
     user,
     isConnected,
+    sessionFresh,
     network,
     isCorrectNetwork,
-    connect: () => fcl.authenticate(),
-    disconnect: () => fcl.unauthenticate(),
+    connect,
+    disconnect,
   }
 }
 

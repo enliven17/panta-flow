@@ -120,7 +120,7 @@ export default function TradePage() {
             >
               {/* Chart fills remaining space */}
               <div className="flex-1 min-h-0">
-                <TradingChart token={selectedToken} />
+                <TradingChart key={selectedToken} token={selectedToken} />
               </div>
 
               {/* Positions tabs strip */}
@@ -184,7 +184,7 @@ export default function TradePage() {
               {/* Left: chart + positions */}
               <motion.div variants={fromLeft} className="flex-1 flex flex-col min-w-0">
                 <div className="flex-1 min-h-0 mb-2">
-                  <TradingChart token={selectedToken} />
+                  <TradingChart key={selectedToken} token={selectedToken} />
                 </div>
                 <div className="bg-[#0E0E0E] rounded-2xl border border-[#1A1A1A] overflow-hidden">
                   <div className="flex border-b border-[#1A1A1A] px-2">
