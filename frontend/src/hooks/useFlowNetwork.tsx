@@ -18,13 +18,33 @@ interface UseFlowNetworkReturn {
   disconnect: () => void
 }
 
+// Module-level: shared across all hook instances, persisted in sessionStorage
+// (sessionStorage clears on tab close, so next visit starts fresh = false)
+const SESSION_KEY = 'panta_session_fresh'
+let _fresh = typeof window !== 'undefined' && !!sessionStorage.getItem(SESSION_KEY)
+const _subs = new Set<(v: boolean) => void>()
+
+function setFresh(val: boolean) {
+  _fresh = val
+  if (val) sessionStorage.setItem(SESSION_KEY, '1')
+  else sessionStorage.removeItem(SESSION_KEY)
+  _subs.forEach(fn => fn(val))
+}
+
 export function useFlowNetwork(): UseFlowNetworkReturn {
   const [user, setUser] = useState<FlowUser>({ addr: null, loggedIn: null })
-  const [sessionFresh, setSessionFresh] = useState(false)
+  const [sessionFresh, setSessionFresh] = useState(_fresh)
 
   useEffect(() => {
     const unsub = fcl.currentUser.subscribe(setUser)
-    return () => unsub()
+    const unsubFresh = (v: boolean) => setSessionFresh(v)
+    _subs.add(unsubFresh)
+    // Sync in case another instance updated it before this one mounted
+    setSessionFresh(_fresh)
+    return () => {
+      unsub()
+      _subs.delete(unsubFresh)
+    }
   }, [])
 
   const network = FLOW_NETWORK
@@ -32,12 +52,12 @@ export function useFlowNetwork(): UseFlowNetworkReturn {
   const isCorrectNetwork = network === "testnet"
 
   const connect = () => {
-    setSessionFresh(true)
+    setFresh(true)
     fcl.authenticate()
   }
 
   const disconnect = () => {
-    setSessionFresh(false)
+    setFresh(false)
     fcl.unauthenticate()
   }
 
