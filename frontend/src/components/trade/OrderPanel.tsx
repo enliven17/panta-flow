@@ -6,6 +6,7 @@ import { useFlowNetwork } from '@/hooks/useFlowNetwork'
 import { useTradeForm, Direction, TxStatus } from '@/hooks/useTradeForm'
 import { useLimitOrder } from '@/hooks/useLimitOrder'
 import { usePrices } from '@/hooks/usePrices'
+import { useFaucetStatus } from '@/hooks/useFaucet'
 
 type Market = 'ETH' | 'BTC' | 'FLOW'
 type OrderType = 'market' | 'limit'
@@ -58,19 +59,11 @@ function TxStatusBadge({ status, txId }: { status: TxStatus | 'idle' | 'pending'
   )
 }
 
-// Flow blockchain icon SVG
-function FlowIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="20" fill="#00EF8B"/>
-      <path d="M26.5 11H17.5C14.46 11 12 13.46 12 16.5C12 19.54 14.46 22 17.5 22H20V26.5C20 27.88 21.12 29 22.5 29C23.88 29 25 27.88 25 26.5V22H26.5C29.54 22 32 19.54 32 16.5C32 13.46 29.54 11 26.5 11ZM22.5 19H17.5C16.12 19 15 17.88 15 16.5C15 15.12 16.12 14 17.5 14H26.5C27.88 14 29 15.12 29 16.5C29 17.88 27.88 19 26.5 19H22.5Z" fill="white"/>
-    </svg>
-  )
-}
 
 export function OrderPanel({ market }: OrderPanelProps) {
-  const { user, isConnected, sessionFresh, connect } = useFlowNetwork()
+  const { user, isConnected, sessionFresh, connect, disconnect } = useFlowNetwork()
   const { data: prices } = usePrices()
+  const { data: faucetStatus } = useFaucetStatus()
   const form = useTradeForm(market)
   const limitOrder = useLimitOrder()
 
@@ -369,6 +362,21 @@ export function OrderPanel({ market }: OrderPanelProps) {
 
       <TxStatusBadge status={txStatus} txId={txId} />
 
+      {isConnected && sessionFresh && faucetStatus?.needsSetup && (
+        <a
+          href="/earn"
+          className="flex items-start gap-3 px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/25 text-yellow-400 hover:bg-yellow-500/15 transition-colors"
+        >
+          <span className="text-base leading-none mt-0.5">⚠</span>
+          <div>
+            <p className="text-[12px] font-bold leading-snug">USDC vault bulunamadı</p>
+            <p className="text-[11px] text-yellow-400/70 mt-0.5 leading-snug">
+              Bu bir testnet — gerçek USDC yok. İşlem yapabilmek için önce <span className="underline">Faucet</span> sayfasından Mock USDC almanız gerekiyor.
+            </p>
+          </div>
+        </a>
+      )}
+
       {!isConnected ? (
         <button
           onClick={connect}
@@ -378,7 +386,7 @@ export function OrderPanel({ market }: OrderPanelProps) {
         </button>
       ) : !sessionFresh ? (
         <button
-          onClick={connect}
+          onClick={() => { disconnect(); setTimeout(connect, 100) }}
           className="mt-2 w-full h-[64px] rounded-2xl bg-[#1A1A1A] border border-[#FF4466]/30 text-[14px] font-bold text-[#FF4466] hover:bg-[#FF4466]/10 active:scale-[0.98] transition-all"
         >
           Session expired — reconnect wallet
